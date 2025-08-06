@@ -1,0 +1,99 @@
+import axios from 'axios'
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+
+console.log('API_BASE_URL:', API_BASE_URL)
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  timeout: 10000, // 10 second timeout
+})
+
+// Request interceptor to add auth token
+api.interceptors.request.use(
+  (config) => {
+    console.log('Making request to:', config.url)
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => {
+    console.error('Request error:', error)
+    return Promise.reject(error)
+  }
+)
+
+// Response interceptor to handle errors
+api.interceptors.response.use(
+  (response) => {
+    console.log('Response received:', response.status)
+    return response
+  },
+  (error) => {
+    console.error('Response error:', error)
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      window.location.href = '/login'
+    }
+    return Promise.reject(error)
+  }
+)
+
+// Auth API
+export const authAPI = {
+  login: (credentials) => {
+    console.log('Attempting login with:', credentials)
+    return api.post('/auth/login', credentials)
+  },
+  logout: () => api.post('/auth/logout'),
+  refresh: () => api.post('/auth/refresh'),
+}
+
+// Employees API
+export const employeesAPI = {
+  getAll: (params) => api.get('/employees', { params }),
+  getById: (id) => api.get(`/employees/${id}`),
+  create: (data) => api.post('/employees', data),
+  update: (id, data) => api.put(`/employees/${id}`, data),
+  delete: (id) => api.delete(`/employees/${id}`),
+}
+
+// Candidates API
+export const candidatesAPI = {
+  getAll: (params) => api.get('/candidates', { params }),
+  getById: (id) => api.get(`/candidates/${id}`),
+  create: (data) => api.post('/candidates', data),
+  update: (id, data) => api.put(`/candidates/${id}`, data),
+  delete: (id) => api.delete(`/candidates/${id}`),
+}
+
+// Jobs API
+export const jobsAPI = {
+  getAll: (params) => api.get('/jobs', { params }),
+  getById: (id) => api.get(`/jobs/${id}`),
+  create: (data) => api.post('/jobs', data),
+  update: (id, data) => api.put(`/jobs/${id}`, data),
+  delete: (id) => api.delete(`/jobs/${id}`),
+}
+
+// Applications API
+export const applicationsAPI = {
+  getAll: (params) => api.get('/applications', { params }),
+  getById: (id) => api.get(`/applications/${id}`),
+  create: (data) => api.post('/applications', data),
+  update: (id, data) => api.put(`/applications/${id}`, data),
+  delete: (id) => api.delete(`/applications/${id}`),
+}
+
+// Dashboard API
+export const dashboardAPI = {
+  getStats: () => api.get('/dashboard/stats'),
+  getRecentActivities: () => api.get('/dashboard/activities'),
+}
+
+export default api 
