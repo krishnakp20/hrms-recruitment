@@ -1,52 +1,48 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Search, Eye, Edit, Trash2, Phone, Mail } from 'lucide-react'
+import CandidateForm from '../components/CandidateForm'
+import { candidatesAPI } from '../services/api'
 
 const Candidates = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('all')
+  const [candidates, setCandidates] = useState([])
+  const [formOpen, setFormOpen] = useState(false)
+  const [editCandidate, setEditCandidate] = useState(null)
 
-  const candidates = [
-    {
-      id: 1,
-      name: 'Alex Thompson',
-      email: 'alex.thompson@email.com',
-      phone: '+1 (555) 123-4567',
-      position: 'Frontend Developer',
-      status: 'Applied',
-      appliedDate: '2024-01-15',
-      experience: '3 years',
-    },
-    {
-      id: 2,
-      name: 'Maria Garcia',
-      email: 'maria.garcia@email.com',
-      phone: '+1 (555) 234-5678',
-      position: 'Product Manager',
-      status: 'Interviewed',
-      appliedDate: '2024-01-10',
-      experience: '5 years',
-    },
-    {
-      id: 3,
-      name: 'David Chen',
-      email: 'david.chen@email.com',
-      phone: '+1 (555) 345-6789',
-      position: 'Backend Developer',
-      status: 'Shortlisted',
-      appliedDate: '2024-01-12',
-      experience: '4 years',
-    },
-    {
-      id: 4,
-      name: 'Lisa Wang',
-      email: 'lisa.wang@email.com',
-      phone: '+1 (555) 456-7890',
-      position: 'UX Designer',
-      status: 'Applied',
-      appliedDate: '2024-01-14',
-      experience: '2 years',
-    },
-  ]
+  const fetchCandidates = async () => {
+    try {
+      const res = await candidatesAPI.getAll()
+      setCandidates(res.data)
+    } catch (err) {
+      console.error('Failed to fetch candidates', err)
+    }
+  }
+
+  useEffect(() => {
+    fetchCandidates()
+  }, [])
+
+  const handleAddClick = () => {
+    setEditCandidate(null)
+    setFormOpen(true)
+  }
+
+  const handleEditClick = (candidate) => {
+    setEditCandidate(candidate)
+    setFormOpen(true)
+  }
+
+  const handleDeleteClick = async (id) => {
+    if (confirm('Are you sure you want to delete this candidate?')) {
+      try {
+        await candidatesAPI.delete(id)
+        fetchCandidates()
+      } catch (err) {
+        console.error('Failed to delete candidate', err)
+      }
+    }
+  }
 
   const statuses = ['all', 'Applied', 'Shortlisted', 'Interviewed', 'Rejected', 'Hired']
 
@@ -68,9 +64,9 @@ const Candidates = () => {
   }
 
   const filteredCandidates = candidates.filter(candidate => {
-    const matchesSearch = candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         candidate.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         candidate.position.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = candidate.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         candidate.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         candidate.email.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = selectedStatus === 'all' || candidate.status === selectedStatus
     return matchesSearch && matchesStatus
   })
@@ -82,13 +78,12 @@ const Candidates = () => {
           <h1 className="text-2xl font-bold text-gray-900">Candidates</h1>
           <p className="text-gray-600">Manage job candidates and applications</p>
         </div>
-        <button className="btn-primary flex items-center">
+        <button className="btn-primary flex items-center" onClick={handleAddClick}>
           <Plus className="h-4 w-4 mr-2" />
           Add Candidate
         </button>
       </div>
 
-      {/* Filters */}
       <div className="card">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
@@ -119,20 +114,19 @@ const Candidates = () => {
         </div>
       </div>
 
-      {/* Candidates Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCandidates.map((candidate) => (
           <div key={candidate.id} className="card hover:shadow-lg transition-shadow duration-200">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">{candidate.name}</h3>
-                <p className="text-sm text-gray-600">{candidate.position}</p>
+                <h3 className="text-lg font-semibold text-gray-900">{candidate.first_name} {candidate.last_name}</h3>
+                <p className="text-sm text-gray-600">{candidate.position || 'N/A'}</p>
               </div>
               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(candidate.status)}`}>
                 {candidate.status}
               </span>
             </div>
-            
+
             <div className="space-y-2 mb-4">
               <div className="flex items-center text-sm text-gray-600">
                 <Mail className="h-4 w-4 mr-2" />
@@ -143,10 +137,7 @@ const Candidates = () => {
                 {candidate.phone}
               </div>
               <div className="text-sm text-gray-600">
-                Experience: {candidate.experience}
-              </div>
-              <div className="text-sm text-gray-600">
-                Applied: {candidate.appliedDate}
+                Experience: {candidate.experience_years} years
               </div>
             </div>
 
@@ -155,10 +146,10 @@ const Candidates = () => {
                 <button className="text-primary-600 hover:text-primary-900">
                   <Eye className="h-4 w-4" />
                 </button>
-                <button className="text-gray-600 hover:text-gray-900">
+                <button className="text-gray-600 hover:text-gray-900" onClick={() => handleEditClick(candidate)}>
                   <Edit className="h-4 w-4" />
                 </button>
-                <button className="text-red-600 hover:text-red-900">
+                <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClick(candidate.id)}>
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
@@ -166,8 +157,15 @@ const Candidates = () => {
           </div>
         ))}
       </div>
+
+      <CandidateForm
+        isOpen={formOpen}
+        onClose={() => setFormOpen(false)}
+        onSuccess={fetchCandidates}
+        editCandidate={editCandidate}
+      />
     </div>
   )
 }
 
-export default Candidates 
+export default Candidates

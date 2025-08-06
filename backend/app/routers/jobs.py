@@ -205,32 +205,7 @@ async def activate_job(
     db.refresh(db_job)
     return {"message": "Job activated successfully", "job": db_job}
 
-# Department Management Endpoints
-@router.get("/departments/", response_model=List[Department])
-async def get_departments(
-    skip: int = 0, 
-    limit: int = 100, 
-    db: Session = Depends(get_db)
-):
-    """Get all departments"""
-    departments = db.query(DepartmentModel).offset(skip).limit(limit).all()
-    return departments
 
-@router.post("/departments/", response_model=Department)
-async def create_department(
-    department: DepartmentCreate, 
-    db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
-):
-    """Create a new department"""
-    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
-        raise HTTPException(status_code=403, detail="Access denied")
-    
-    db_department = DepartmentModel(**department.dict())
-    db.add(db_department)
-    db.commit()
-    db.refresh(db_department)
-    return db_department
 
 # Recruitment Workflow Management Endpoints
 @router.get("/workflows/", response_model=List[RecruitmentWorkflow])
@@ -345,4 +320,75 @@ async def publish_job_channel(
     channel.posted_at = datetime.now()
     db.commit()
     db.refresh(channel)
-    return {"message": "Job published successfully", "channel": channel} 
+    return {"message": "Job published successfully", "channel": channel}
+
+
+# Department Management Endpoints
+@router.get("/departments/", response_model=List[Department])
+async def get_departments(
+        skip: int = 0,
+        limit: int = 100,
+        db: Session = Depends(get_db)
+):
+    """Get all departments"""
+    departments = db.query(DepartmentModel).offset(skip).limit(limit).all()
+    return departments
+
+
+@router.post("/departments/", response_model=Department)
+async def create_department(
+        department: DepartmentCreate,
+        db: Session = Depends(get_db),
+        current_user=Depends(get_current_user)
+):
+    """Create a new department"""
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    db_department = DepartmentModel(**department.dict())
+    db.add(db_department)
+    db.commit()
+    db.refresh(db_department)
+    return db_department
+
+
+@router.get("/departments/{department_id}", response_model=Department)
+async def get_department(department_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    department = db.query(DepartmentModel).filter(DepartmentModel.id == department_id).first()
+    if department is None:
+        raise HTTPException(status_code=404, detail="Department not found")
+    return department
+
+
+@router.put("/departments/{department_id}", response_model=Department)
+async def update_department(department_id: int, department: DepartmentUpdate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    db_department = db.query(DepartmentModel).filter(DepartmentModel.id == department_id).first()
+    if db_department is None:
+        raise HTTPException(status_code=404, detail="Department not found")
+
+    for field, value in department.dict(exclude_unset=True).items():
+        setattr(db_department, field, value)
+
+    db.commit()
+    db.refresh(db_department)
+    return db_department
+
+
+@router.delete("/departments/{department_id}")
+async def delete_department(department_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    db_department = db.query(DepartmentModel).filter(DepartmentModel.id == department_id).first()
+    if db_department is None:
+        raise HTTPException(status_code=404, detail="Department not found")
+
+    db.delete(db_department)
+    db.commit()
+    return {"message": "Department deleted successfully"}
