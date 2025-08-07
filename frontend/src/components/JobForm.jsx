@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react'
 import { X, Save, Plus } from 'lucide-react'
 import { jobsAPI } from '../services/api'
+import axios from 'axios'
 
 const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [departments, setDepartments] = useState([])
   const [formData, setFormData] = useState({
     position_title: '',
     position_code: '',
     level: '',
     grade: '',
-    department_id: null,
+    department_id: '',
     sub_department: '',
     process: '',
     reporting_to_title: '',
@@ -33,13 +35,27 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
   })
 
   useEffect(() => {
+
+    const fetchDepartments = async () => {
+      try {
+        const res = await axios.get('http://localhost:8000/jobs/departments/') // Replace with correct backend URL
+        console.log('Departments:', res.data)
+        setDepartments(res.data)
+      } catch (err) {
+        console.error('Failed to load departments', err)
+      }
+    }
+
+    fetchDepartments()
+
     if (editJob) {
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         position_title: editJob.position_title || '',
         position_code: editJob.position_code || '',
         level: editJob.level || '',
         grade: editJob.grade || '',
-        department_id: editJob.department_id || null,
+        department_id: editJob.department_id || '',
         sub_department: editJob.sub_department || '',
         process: editJob.process || '',
         reporting_to_title: editJob.reporting_to_title || '',
@@ -59,7 +75,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
         recruiter_id: editJob.recruiter_id || null,
         workflow_template_id: editJob.workflow_template_id || null,
         recruitment_agency_id: editJob.recruitment_agency_id || null
-      })
+      }))
     }
   }, [editJob])
 
@@ -75,7 +91,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
         // Convert empty strings to null for optional fields
         level: formData.level || null,
         grade: formData.grade || null,
-        department_id: formData.department_id || null,
+        department_id: formData.department_id,
         sub_department: formData.sub_department || null,
         process: formData.process || null,
         reporting_to_title: formData.reporting_to_title || null,
@@ -208,18 +224,21 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
           {/* Department Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Department
-              </label>
-              <input
-                type="text"
-                name="department_id"
-                value={formData.department_id || ''}
-                onChange={handleChange}
-                className="input-field"
-                placeholder="e.g., Engineering"
-              />
+              <label className="block mb-2 text-sm font-medium text-gray-700">Department</label>
+                <select
+                  className="w-full border rounded-md p-2"
+                  value={formData.department_id}
+                  onChange={(e) => setFormData({ ...formData, department_id: parseInt(e.target.value) })}
+                >
+                  <option value="">Select Department</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
             </div>
+
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">

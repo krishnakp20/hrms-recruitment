@@ -100,46 +100,111 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <input name="first_name" value={formData.first_name} onChange={handleChange} placeholder="First Name" className="input-field" />
-            <input name="last_name" value={formData.last_name} onChange={handleChange} placeholder="Last Name" className="input-field" />
-            <input name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="input-field" />
-            <input name="phone" value={formData.phone} onChange={handleChange} placeholder="Phone" className="input-field" />
-            <input name="location_state" value={formData.location_state} onChange={handleChange} placeholder="State" className="input-field" />
-            <input name="location_city" value={formData.location_city} onChange={handleChange} placeholder="City" className="input-field" />
-            <input name="location_area" value={formData.location_area} onChange={handleChange} placeholder="Area" className="input-field" />
-            <input name="location_pincode" value={formData.location_pincode} onChange={handleChange} placeholder="Pincode" className="input-field" />
+            <div>
+              <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+              <input id="first_name" name="first_name" value={formData.first_name} onChange={handleChange} className="input-field" />
+            </div>
+            <div>
+              <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+              <input id="last_name" name="last_name" value={formData.last_name} onChange={handleChange} className="input-field" />
+            </div>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input id="email" name="email" value={formData.email} onChange={handleChange} className="input-field" />
+            </div>
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+              <input id="phone" name="phone" value={formData.phone} onChange={handleChange} className="input-field" />
+            </div>
+            <div>
+              <label htmlFor="location_state" className="block text-sm font-medium text-gray-700 mb-1">State</label>
+              <input id="location_state" name="location_state" value={formData.location_state} onChange={handleChange} className="input-field" />
+            </div>
+            <div>
+              <label htmlFor="location_city" className="block text-sm font-medium text-gray-700 mb-1">City</label>
+              <input id="location_city" name="location_city" value={formData.location_city} onChange={handleChange} className="input-field" />
+            </div>
+            <div>
+              <label htmlFor="location_area" className="block text-sm font-medium text-gray-700 mb-1">Area</label>
+              <input id="location_area" name="location_area" value={formData.location_area} onChange={handleChange} className="input-field" />
+            </div>
+            <div>
+              <label htmlFor="location_pincode" className="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
+              <input id="location_pincode" name="location_pincode" value={formData.location_pincode} onChange={handleChange} className="input-field" />
+            </div>
           </div>
 
-          <textarea name="education_qualification_short" value={formData.education_qualification_short} onChange={handleChange} placeholder="Education Qualification Short" className="input-field" />
-          <textarea name="education_qualification_detailed" value={formData.education_qualification_detailed} onChange={handleChange} placeholder="Education Qualification Detailed" className="input-field" />
+          <div>
+            <label htmlFor="education_qualification_short" className="block text-sm font-medium text-gray-700 mb-1">Education Qualification (Short)</label>
+            <textarea id="education_qualification_short" name="education_qualification_short" value={formData.education_qualification_short} onChange={handleChange} className="input-field" />
+          </div>
+
+          <div>
+            <label htmlFor="education_qualification_detailed" className="block text-sm font-medium text-gray-700 mb-1">Education Qualification (Detailed)</label>
+            <textarea id="education_qualification_detailed" name="education_qualification_detailed" value={formData.education_qualification_detailed} onChange={handleChange} className="input-field" />
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <input name="experience_years" type="number" value={formData.experience_years} onChange={handleChange} placeholder="Experience Years" className="input-field" />
-            <input name="notice_period" type="number" value={formData.notice_period} onChange={handleChange} placeholder="Notice Period (days)" className="input-field" />
-            <input name="current_compensation" type="number" value={formData.current_compensation} onChange={handleChange} placeholder="Current Compensation" className="input-field" />
-            <input name="expected_compensation" type="number" value={formData.expected_compensation} onChange={handleChange} placeholder="Expected Compensation" className="input-field" />
+            <div>
+              <label htmlFor="experience_years" className="block text-sm font-medium text-gray-700 mb-1">Experience (Years)</label>
+              <input id="experience_years" name="experience_years" type="number" value={formData.experience_years} onChange={handleChange} className="input-field" />
+            </div>
+            <div>
+              <label htmlFor="notice_period" className="block text-sm font-medium text-gray-700 mb-1">Notice Period (Days)</label>
+              <input id="notice_period" name="notice_period" type="number" value={formData.notice_period} onChange={handleChange} className="input-field" />
+            </div>
+            <div>
+              <label htmlFor="current_compensation" className="block text-sm font-medium text-gray-700 mb-1">Current Compensation</label>
+              <input id="current_compensation" name="current_compensation" type="number" value={formData.current_compensation} onChange={handleChange} className="input-field" />
+            </div>
+            <div>
+              <label htmlFor="expected_compensation" className="block text-sm font-medium text-gray-700 mb-1">Expected Compensation</label>
+              <input id="expected_compensation" name="expected_compensation" type="number" value={formData.expected_compensation} onChange={handleChange} className="input-field" />
+            </div>
           </div>
 
-          <textarea name="experience_details" value={formData.experience_details} onChange={handleChange} placeholder="Experience Details" className="input-field" />
+          <div>
+            <label htmlFor="experience_details" className="block text-sm font-medium text-gray-700 mb-1">Experience Details</label>
+            <textarea id="experience_details" name="experience_details" value={formData.experience_details} onChange={handleChange} className="input-field" />
+          </div>
 
-          <input name="resume_url" value={formData.resume_url} onChange={handleChange} placeholder="Resume URL" className="input-field" />
-          <textarea name="cover_letter" value={formData.cover_letter} onChange={handleChange} placeholder="Cover Letter" className="input-field" />
+          <div>
+            <label htmlFor="resume_url" className="block text-sm font-medium text-gray-700 mb-1">Resume URL</label>
+            <input id="resume_url" name="resume_url" value={formData.resume_url} onChange={handleChange} className="input-field" />
+          </div>
 
-          <select name="source" value={formData.source} onChange={handleChange} className="input-field">
-            {['Internal Career Page','Job Portal','Social Media','Campus Placement','Reference','Walk-in','WhatsApp','Manual Entry'].map(option => (
-              <option key={option} value={option}>{option.replace(/_/g, ' ')}</option>
-            ))}
-          </select>
+          <div>
+            <label htmlFor="cover_letter" className="block text-sm font-medium text-gray-700 mb-1">Cover Letter</label>
+            <textarea id="cover_letter" name="cover_letter" value={formData.cover_letter} onChange={handleChange} className="input-field" />
+          </div>
 
-          <input name="source_details" value={formData.source_details} onChange={handleChange} placeholder="Source Details" className="input-field" />
+          <div>
+            <label htmlFor="source" className="block text-sm font-medium text-gray-700 mb-1">Source</label>
+            <select id="source" name="source" value={formData.source} onChange={handleChange} className="input-field">
+              {['Internal Career Page','Job Portal','Social Media','Campus Placement','Reference','Walk-in','WhatsApp','Manual Entry'].map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+          </div>
 
-          <select name="status" value={formData.status} onChange={handleChange} className="input-field">
-            {['New','Shortlisted','Interviewed','Rejected','Hired','Pool'].map(option => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
+          <div>
+            <label htmlFor="source_details" className="block text-sm font-medium text-gray-700 mb-1">Source Details</label>
+            <input id="source_details" name="source_details" value={formData.source_details} onChange={handleChange} className="input-field" />
+          </div>
 
-          <textarea name="notes" value={formData.notes} onChange={handleChange} placeholder="Notes" className="input-field" />
+          <div>
+            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <select id="status" name="status" value={formData.status} onChange={handleChange} className="input-field">
+              {['New','Shortlisted','Interviewed','Rejected','Hired','Pool'].map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+            <textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} className="input-field" />
+          </div>
 
           <label className="flex items-center space-x-2">
             <input
@@ -152,19 +217,10 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
           </label>
 
           <div className="flex items-center justify-end space-x-3 pt-6 border-t">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-secondary"
-              disabled={loading}
-            >
+            <button type="button" onClick={onClose} className="btn-secondary" disabled={loading}>
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary flex items-center"
-            >
+            <button type="submit" disabled={loading} className="btn-primary flex items-center">
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -179,6 +235,7 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
             </button>
           </div>
         </form>
+
       </div>
     </div>
   )

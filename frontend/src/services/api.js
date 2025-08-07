@@ -70,6 +70,12 @@ export const candidatesAPI = {
   create: (data) => api.post('/candidates', data),
   update: (id, data) => api.put(`/candidates/${id}`, data),
   delete: (id) => api.delete(`/candidates/${id}`),
+  uploadResume: (id, data) =>
+      api.post(`/candidates/${id}/upload-resume`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }),
 }
 
 // Jobs API
@@ -79,6 +85,7 @@ export const jobsAPI = {
   create: (data) => api.post('/jobs', data),
   update: (id, data) => api.put(`/jobs/${id}`, data),
   delete: (id) => api.delete(`/jobs/${id}`),
+
 }
 
 // Applications API

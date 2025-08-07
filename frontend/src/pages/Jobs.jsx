@@ -269,6 +269,8 @@ import { useState, useEffect } from 'react'
 import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react'
 import { jobsAPI } from '../services/api'
 import JobForm from '../components/JobForm'
+import JobDetailsModal from '../components/JobDetailsModal'
+
 
 const Jobs = () => {
   const [jobs, setJobs] = useState([])
@@ -278,6 +280,8 @@ const Jobs = () => {
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [showJobForm, setShowJobForm] = useState(false)
   const [editingJob, setEditingJob] = useState(null)
+  const [showJobDetails, setShowJobDetails] = useState(false)
+  const [selectedJob, setSelectedJob] = useState(null)
 
   useEffect(() => {
     fetchJobs()
@@ -297,11 +301,10 @@ const Jobs = () => {
     }
   }
 
-  const statuses = ['all', 'ACTIVE', 'DRAFT', 'CLOSED', 'ARCHIVED', 'PENDING_APPROVAL', 'APPROVED']
+  const statuses = ['all', 'Active', 'Draft', 'Closed', 'Archived', 'Pending Approval', 'Approved']
 
   const filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          job.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = job.position_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           job.location_details?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = selectedStatus === 'all' || job.status === selectedStatus
     return matchesSearch && matchesStatus
@@ -336,6 +339,16 @@ const Jobs = () => {
   const handleCloseJobForm = () => {
     setShowJobForm(false)
     setEditingJob(null)
+  }
+
+  const handleViewJob = (job) => {
+   setSelectedJob(job)
+   setShowJobDetails(true)
+  }
+
+  const handleCloseJobDetails = () => {
+    setSelectedJob(null)
+    setShowJobDetails(false)
   }
 
   const getStatusColor = (status) => {
@@ -425,7 +438,7 @@ const Jobs = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex items-center justify-end space-x-2">
-                    <button className="text-primary-600 hover:text-primary-900">
+                    <button className="text-primary-600 hover:text-primary-900" onClick={() => handleViewJob(job)}>
                       <Eye className="h-4 w-4" />
                     </button>
                     <button className="text-gray-600 hover:text-gray-900" onClick={() => handleEditJob(job)}>
@@ -448,6 +461,12 @@ const Jobs = () => {
         onClose={handleCloseJobForm}
         onSuccess={handleJobFormSuccess}
         editJob={editingJob}
+      />
+
+      <JobDetailsModal
+          isOpen={showJobDetails}
+          onClose={handleCloseJobDetails}
+          job={selectedJob}
       />
     </div>
   )

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Users, UserPlus, Briefcase, FileText, TrendingUp, TrendingDown } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { dashboardAPI } from '../services/api'
 
 const Dashboard = () => {
@@ -171,18 +172,18 @@ const Dashboard = () => {
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="space-y-3">
-            <button className="w-full btn-primary">
-              Add New Employee
-            </button>
-            <button className="w-full btn-secondary">
+            <Link to="/jobs" className="w-full btn-primary block text-center">
               Post New Job
-            </button>
-            <button className="w-full btn-secondary">
+            </Link>
+            <Link to="/candidates" className="w-full btn-secondary block text-center">
+              Add Candidate
+            </Link>
+            <Link to="/" className="w-full btn-secondary block text-center">
               Schedule Interview
-            </button>
-            <button className="w-full btn-secondary">
+            </Link>
+            <Link to="/" className="w-full btn-secondary block text-center">
               Generate Report
-            </button>
+            </Link>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Plus, Search, Eye, Edit, Trash2, Phone, Mail } from 'lucide-react'
 import CandidateForm from '../components/CandidateForm'
 import { candidatesAPI } from '../services/api'
+import CandidateView from '../components/CandidateView'
 
 const Candidates = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -9,6 +10,8 @@ const Candidates = () => {
   const [candidates, setCandidates] = useState([])
   const [formOpen, setFormOpen] = useState(false)
   const [editCandidate, setEditCandidate] = useState(null)
+  const [viewCandidate, setViewCandidate] = useState(null)
+
 
   const fetchCandidates = async () => {
     try {
@@ -44,7 +47,12 @@ const Candidates = () => {
     }
   }
 
-  const statuses = ['all', 'Applied', 'Shortlisted', 'Interviewed', 'Rejected', 'Hired']
+  const handleViewClick = (candidate) => {
+  setViewCandidate(candidate)
+}
+
+
+  const statuses = ['all', 'New', 'Shortlisted', 'Interviewed', 'Rejected', 'Hired', 'Pool']
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -70,6 +78,22 @@ const Candidates = () => {
     const matchesStatus = selectedStatus === 'all' || candidate.status === selectedStatus
     return matchesSearch && matchesStatus
   })
+
+  const handleResumeUpload = async (candidateId, file) => {
+  if (!file) return
+  const formData = new FormData()
+  formData.append('resume_file', file)
+
+  try {
+    const res = await candidatesAPI.uploadResume(candidateId, formData)
+    alert('Resume uploaded & parsed successfully!')
+    fetchCandidates()  // refresh table
+  } catch (err) {
+    console.error('Resume upload failed', err)
+    alert('Failed to upload resume')
+  }
+}
+
 
   return (
     <div className="space-y-6">
@@ -114,49 +138,64 @@ const Candidates = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCandidates.map((candidate) => (
-          <div key={candidate.id} className="card hover:shadow-lg transition-shadow duration-200">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">{candidate.first_name} {candidate.last_name}</h3>
-                <p className="text-sm text-gray-600">{candidate.position || 'N/A'}</p>
-              </div>
-              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(candidate.status)}`}>
-                {candidate.status}
-              </span>
-            </div>
+      <div className="card overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">City</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Experience</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {filteredCandidates.map((candidate) => (
+            <tr key={candidate.id} className="hover:bg-gray-50">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                {candidate.first_name} {candidate.last_name}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.email}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.phone}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.location_city}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.experience_years} years</td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(candidate.status)}`}>
+                  {candidate.status}
+                </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div className="flex items-center justify-end space-x-2">
+                    <button className="text-primary-600 hover:text-primary-900" onClick={() => handleViewClick(candidate)}>
+                      <Eye className="h-4 w-4" />
+                    </button>
+                    <button className="text-gray-600 hover:text-gray-900" onClick={() => handleEditClick(candidate)}>
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClick(candidate.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                    {/* 👇 Upload resume input */}
+                    <label className="cursor-pointer text-blue-600 hover:text-blue-900">
+                      📄
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        onChange={(e) => handleResumeUpload(candidate.id, e.target.files[0])}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </td>
 
-            <div className="space-y-2 mb-4">
-              <div className="flex items-center text-sm text-gray-600">
-                <Mail className="h-4 w-4 mr-2" />
-                {candidate.email}
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <Phone className="h-4 w-4 mr-2" />
-                {candidate.phone}
-              </div>
-              <div className="text-sm text-gray-600">
-                Experience: {candidate.experience_years} years
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-              <div className="flex space-x-2">
-                <button className="text-primary-600 hover:text-primary-900">
-                  <Eye className="h-4 w-4" />
-                </button>
-                <button className="text-gray-600 hover:text-gray-900" onClick={() => handleEditClick(candidate)}>
-                  <Edit className="h-4 w-4" />
-                </button>
-                <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClick(candidate.id)}>
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
       </div>
+
 
       <CandidateForm
         isOpen={formOpen}
@@ -164,6 +203,12 @@ const Candidates = () => {
         onSuccess={fetchCandidates}
         editCandidate={editCandidate}
       />
+      <CandidateView
+          isOpen={!!viewCandidate}
+          candidate={viewCandidate}
+          onClose={() => setViewCandidate(null)}
+      />
+
     </div>
   )
 }
