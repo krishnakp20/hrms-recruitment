@@ -31,7 +31,7 @@ const JobDetailsModal = ({ isOpen, onClose, job }) => {
           <div><strong>Required Skills:</strong> {job.required_skills || 'N/A'}</div>
           <div><strong>Experience Level:</strong> {job.experience_level || 'N/A'}</div>
           <div><strong>Number of Vacancies:</strong> {job.number_of_vacancies}</div>
-          <div><strong>Compensation:</strong> ${job.compensation_min?.toLocaleString()} - ${job.compensation_max?.toLocaleString()}</div>
+          <div><strong>Compensation:</strong> ₹{job.compensation_min?.toLocaleString()} - ₹{job.compensation_max?.toLocaleString()}</div>
           <div><strong>Employment Type:</strong> {job.employment_type}</div>
           <div><strong>Hiring Deadline:</strong> {job.hiring_deadline}</div>
           <div><strong>Approval Authority:</strong> {job.approval_authority || 'N/A'}</div>

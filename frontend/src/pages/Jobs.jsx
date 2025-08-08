@@ -270,7 +270,7 @@ import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react'
 import { jobsAPI } from '../services/api'
 import JobForm from '../components/JobForm'
 import JobDetailsModal from '../components/JobDetailsModal'
-
+import JobPoolCandidatesModal from '../components/JobPoolCandidatesModal'
 
 const Jobs = () => {
   const [jobs, setJobs] = useState([])
@@ -282,6 +282,8 @@ const Jobs = () => {
   const [editingJob, setEditingJob] = useState(null)
   const [showJobDetails, setShowJobDetails] = useState(false)
   const [selectedJob, setSelectedJob] = useState(null)
+  const [showPoolModal, setShowPoolModal] = useState(false)
+  const [selectedJobId, setSelectedJobId] = useState(null)
 
   useEffect(() => {
     fetchJobs()
@@ -305,6 +307,7 @@ const Jobs = () => {
 
   const filteredJobs = jobs.filter(job => {
     const matchesSearch = job.position_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          job.department?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           job.location_details?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = selectedStatus === 'all' || job.status === selectedStatus
     return matchesSearch && matchesStatus
@@ -351,14 +354,19 @@ const Jobs = () => {
     setShowJobDetails(false)
   }
 
+  const handleViewPool = (jobId) => {
+      setSelectedJobId(jobId)
+      setShowPoolModal(true)
+  }
+
   const getStatusColor = (status) => {
     switch (status) {
-      case 'ACTIVE': return 'bg-green-100 text-green-800'
-      case 'DRAFT': return 'bg-yellow-100 text-yellow-800'
-      case 'CLOSED': return 'bg-red-100 text-red-800'
-      case 'ARCHIVED': return 'bg-gray-100 text-gray-800'
-      case 'PENDING_APPROVAL': return 'bg-blue-100 text-blue-800'
-      case 'APPROVED': return 'bg-purple-100 text-purple-800'
+      case 'Active': return 'bg-green-100 text-green-800'
+      case 'Draft': return 'bg-yellow-100 text-yellow-800'
+      case 'Closed': return 'bg-red-100 text-red-800'
+      case 'Archived': return 'bg-gray-100 text-gray-800'
+      case 'Pending Approval': return 'bg-blue-100 text-blue-800'
+      case 'Approved': return 'bg-purple-100 text-purple-800'
       default: return 'bg-gray-100 text-gray-800'
     }
   }
@@ -418,6 +426,9 @@ const Jobs = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Salary</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Pool / Vacancies
+              </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>
@@ -429,13 +440,18 @@ const Jobs = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{job.location_details || 'N/A'}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{job.employment_type || 'Full-time'}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  ${job.compensation_min?.toLocaleString()} - ${job.compensation_max?.toLocaleString()}
+                  ₹{job.compensation_min?.toLocaleString()} - ₹{job.compensation_max?.toLocaleString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(job.status)}`}>
                     {job.status?.replace('_', ' ')}
                   </span>
                 </td>
+                <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900 font-medium text-blue-600 cursor-pointer underline"
+                    onClick={() => handleViewPool(job.id)}>
+                  {job.pool_candidate_count || 0} / {job.number_of_vacancies || 0}
+                </td>
+
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex items-center justify-end space-x-2">
                     <button className="text-primary-600 hover:text-primary-900" onClick={() => handleViewJob(job)}>
@@ -468,6 +484,13 @@ const Jobs = () => {
           onClose={handleCloseJobDetails}
           job={selectedJob}
       />
+
+      <JobPoolCandidatesModal
+          isOpen={showPoolModal}
+          onClose={() => setShowPoolModal(false)}
+          jobId={selectedJobId}
+      />
+
     </div>
   )
 }

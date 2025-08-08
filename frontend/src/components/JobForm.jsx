@@ -34,13 +34,26 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
     recruitment_agency_id: null
   })
 
+  const selectedDepartment = departments.find(
+      dept => dept.id === formData.department_id
+  )
+  const availableSubDepartments = selectedDepartment?.sub_departments || []
+
+
   useEffect(() => {
 
     const fetchDepartments = async () => {
       try {
         const res = await axios.get('http://localhost:8000/jobs/departments/') // Replace with correct backend URL
         console.log('Departments:', res.data)
+
+        const departmentsWithSubs = res.data.map(dept => ({
+          ...dept,
+          sub_departments: dept.sub_department ? [dept.sub_department] : []
+        }))
+
         setDepartments(res.data)
+        setDepartments(departmentsWithSubs)
       } catch (err) {
         console.error('Failed to load departments', err)
       }
@@ -244,14 +257,20 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Sub Department
               </label>
-              <input
-                type="text"
-                name="sub_department"
-                value={formData.sub_department}
-                onChange={handleChange}
-                className="input-field"
-                placeholder="e.g., Software Development"
-              />
+              <select
+                  name="sub_department"
+                  value={formData.sub_department}
+                  onChange={handleChange}
+                  className="input-field"
+              >
+              <option value="">Select Sub-Department</option>
+                  {availableSubDepartments.map((sub, idx) => (
+                    <option key={idx} value={sub}>
+                      {sub}
+                    </option>
+                  ))}
+              </select>
+
             </div>
           </div>
 

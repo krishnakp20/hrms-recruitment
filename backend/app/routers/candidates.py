@@ -12,6 +12,9 @@ from app.schemas.candidate import (
 from app.models.candidate import Candidate as CandidateModel, WhatsAppCommunication as WhatsAppCommunicationModel
 from app.models.candidate import CandidateStatus, CandidateSource
 from app.models.user import UserRole
+import os, shutil
+from app.routers.resume_utils import parse_resume_spacy
+
 
 router = APIRouter()
 
@@ -266,30 +269,36 @@ async def upload_resume(
     candidate_id: int,
     resume_file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user=Depends(get_current_user)
 ):
-    """Upload and parse a resume for a candidate"""
     if current_user.role not in [UserRole.HR_SPOC, UserRole.RECRUITER, UserRole.ADMIN]:
         raise HTTPException(status_code=403, detail="Access denied")
-    
+
     candidate = db.query(CandidateModel).filter(CandidateModel.id == candidate_id).first()
     if candidate is None:
         raise HTTPException(status_code=404, detail="Candidate not found")
-    
-    # Here you would implement file upload logic
-    # For now, we'll just update the resume_url
-    resume_url = f"/uploads/resumes/{candidate_id}_{resume_file.filename}"
-    candidate.resume_url = resume_url
-    
-    # Here you would implement resume parsing logic
-    # For now, we'll just update some basic fields
-    # parsed_data = parse_resume(resume_file)
-    # candidate.education_qualification_short = parsed_data.get("education", "")
-    # candidate.experience_years = parsed_data.get("experience_years", 0)
-    
-    db.commit()
-    db.refresh(candidate)
-    return {"message": "Resume uploaded and parsed", "candidate": candidate}
+
+    # Save file
+    upload_dir = "uploads/resumes"
+    os.makedirs(upload_dir, exist_ok=True)
+    file_path = os.path.join(upload_dir, f"{candidate_id}_{resume_file.filename}")
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(resume_file.file, buffer)
+
+    # Parse using spaCy
+    parsed_data = parse_resume_spacy(file_path)
+
+    if parsed_data:
+        candidate.resume_url = f"/{file_path}"
+        candidate.experience_details = parsed_data.get("experience_summary", "")
+        candidate.first_name = parsed_data.get("name", candidate.first_name)
+        candidate.email = parsed_data.get("email", candidate.email)
+        candidate.phone = parsed_data.get("phone", candidate.phone)
+
+        db.commit()
+        db.refresh(candidate)
+
+    return {"message": "Resume uploaded and parsed using spaCy", "parsed": parsed_data}
 
 # Bulk Import from WhatsApp
 @router.post("/import-from-whatsapp")

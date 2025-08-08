@@ -10,12 +10,49 @@ from app.schemas.job import (
     RecruitmentAgency, RecruitmentAgencyCreate, RecruitmentAgencyUpdate,
     JobPostingChannel, JobPostingChannelCreate, JobPostingChannelUpdate
 )
+from app.schemas.candidate import Candidate
 from app.models.job import Job as JobModel, Department as DepartmentModel, RecruitmentWorkflow as RecruitmentWorkflowModel
 from app.models.job import RecruitmentAgency as RecruitmentAgencyModel, JobPostingChannel as JobPostingChannelModel
 from app.models.job import JobStatus, LocationType
 from app.models.user import UserRole
+from app.models.candidate import Candidate as CandidateModel
+from app.routers.match_pool_utils import match_pool_candidates_to_job, extract_skills, parse_experience_range
+
 
 router = APIRouter()
+
+
+def get_pool_candidates_to_job(job: JobModel, db: Session) -> List[CandidateModel]:
+    # Fetch all pool candidates
+    pool_candidates = db.query(CandidateModel).filter(CandidateModel.is_in_pool == True).all()
+
+    # Parse required job skills and experience
+    required_skills = extract_skills(job.required_skills or "")
+    exp_min, exp_max = parse_experience_range(job.experience_level or "")
+
+    matched = []
+    for candidate in pool_candidates:
+        # Make sure candidate has experience details
+        candidate_skills = extract_skills(candidate.experience_details or "")
+        skill_match = required_skills.intersection(candidate_skills)
+
+        # Experience matching
+        exp_match = True
+        if exp_min is not None and exp_max is not None:
+            if candidate.experience_years is None:
+                exp_match = False
+            else:
+                exp_match = exp_min <= candidate.experience_years <= exp_max
+
+        # Add to matched if both conditions are met
+        if skill_match and exp_match:
+            matched.append(candidate)
+
+        # Stop if enough matches for job vacancies
+        if len(matched) >= (job.number_of_vacancies or 1):
+            break
+
+    return matched
 
 # Job Management Endpoints
 @router.get("/", response_model=List[Job])
@@ -48,7 +85,15 @@ async def get_jobs(
         pass
     
     jobs = query.offset(skip).limit(limit).all()
-    return jobs
+    # Add pool candidate count to each job
+    job_outputs = []
+    for job in jobs:
+        pool_candidates = get_pool_candidates_to_job(job, db)
+        job_dict = Job.from_orm(job).dict()
+        job_dict["pool_candidate_count"] = len(pool_candidates)
+        job_outputs.append(job_dict)
+
+    return job_outputs
 
 @router.get("/{job_id}", response_model=Job)
 async def get_job(
@@ -392,3 +437,15 @@ async def delete_department(department_id: int, db: Session = Depends(get_db), c
     db.delete(db_department)
     db.commit()
     return {"message": "Department deleted successfully"}
+
+
+@router.get("/jobs/{job_id}/pool_candidates", response_model=List[Candidate])
+def get_pool_candidates_for_job(job_id: int, db: Session = Depends(get_db)):
+    job = db.query(JobModel).filter(JobModel.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    pool_candidates = db.query(CandidateModel).filter(CandidateModel.is_in_pool == True).all()
+    matched_candidates = match_pool_candidates_to_job(job, pool_candidates)
+
+    return matched_candidates

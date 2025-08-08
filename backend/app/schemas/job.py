@@ -3,6 +3,27 @@ from typing import Optional, List
 from datetime import datetime, date
 from app.models.job import JobStatus, JobType, LocationType
 
+
+
+class DepartmentBase(BaseModel):
+    name: str
+    sub_department: Optional[str] = None
+
+class DepartmentCreate(DepartmentBase):
+    pass
+
+class DepartmentUpdate(BaseModel):
+    name: Optional[str] = None
+    sub_department: Optional[str] = None
+
+class Department(DepartmentBase):
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
 class JobBase(BaseModel):
     position_title: str
     position_code: str
@@ -64,6 +85,8 @@ class JobUpdate(BaseModel):
 
 class Job(JobBase):
     id: int
+    pool_candidate_count: int = 0
+    department: Optional[Department] = None
     created_by: Optional[int] = None
     approved_by: Optional[int] = None
     approved_at: Optional[datetime] = None
@@ -73,24 +96,7 @@ class Job(JobBase):
     class Config:
         from_attributes = True
 
-class DepartmentBase(BaseModel):
-    name: str
-    sub_department: Optional[str] = None
 
-class DepartmentCreate(DepartmentBase):
-    pass
-
-class DepartmentUpdate(BaseModel):
-    name: Optional[str] = None
-    sub_department: Optional[str] = None
-
-class Department(DepartmentBase):
-    id: int
-    created_at: datetime
-    updated_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
 
 class RecruitmentWorkflowBase(BaseModel):
     name: str
