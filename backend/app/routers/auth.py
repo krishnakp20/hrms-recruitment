@@ -31,7 +31,7 @@ async def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
         )
     
     # Create access token
-    access_token = create_access_token(data={"sub": user.email})
+    access_token = create_access_token(data={"sub": user.email, "role": user.role.upper()})
     
     return {
         "access_token": access_token,
@@ -41,7 +41,7 @@ async def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
             "email": user.email,
             "username": user.username,
             "full_name": user.full_name,
-            "role": user.role.value if user.role else None,
+            "role": user.role.upper(),
             "is_active": user.is_active
         }
     }
@@ -64,6 +64,6 @@ async def get_current_user_info(current_user = Depends(get_current_user)):
         "email": current_user.email,
         "username": current_user.username,
         "full_name": current_user.full_name,
-        "role": current_user.role.value if current_user.role else None,
+        "role": current_user.upper(),
         "is_active": current_user.is_active
     } 

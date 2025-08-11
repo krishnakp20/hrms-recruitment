@@ -266,11 +266,12 @@
 
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Eye, CheckCircle, Send } from 'lucide-react'
 import { jobsAPI } from '../services/api'
 import JobForm from '../components/JobForm'
 import JobDetailsModal from '../components/JobDetailsModal'
 import JobPoolCandidatesModal from '../components/JobPoolCandidatesModal'
+import { useAuth } from '../contexts/AuthContext';
 
 const Jobs = () => {
   const [jobs, setJobs] = useState([])
@@ -284,6 +285,8 @@ const Jobs = () => {
   const [selectedJob, setSelectedJob] = useState(null)
   const [showPoolModal, setShowPoolModal] = useState(false)
   const [selectedJobId, setSelectedJobId] = useState(null)
+  const { user } = useAuth();
+  const userRole = user?.role;
 
   useEffect(() => {
     fetchJobs()
@@ -358,6 +361,33 @@ const Jobs = () => {
       setSelectedJobId(jobId)
       setShowPoolModal(true)
   }
+
+
+  const handleSubmitForApproval = async (jobId) => {
+      if (!window.confirm('Submit this job for approval?')) return;
+
+      try {
+        await jobsAPI.submitForApproval(jobId);
+        alert('Job submitted for approval successfully.');
+        fetchJobs();
+      } catch (err) {
+        console.error('Error submitting for approval:', err);
+        alert(err.response?.data?.detail || 'Failed to submit job for approval');
+      }
+  };
+
+  const handleApprove = async (jobId) => {
+
+    try {
+      await jobsAPI.approveJob(jobId);
+      alert('Job approved successfully.');
+      fetchJobs();
+    } catch (err) {
+      console.error("Failed to approve job", err);
+      alert(err.response?.data?.detail || 'Failed to approve job');
+    }
+  };
+
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -454,6 +484,29 @@ const Jobs = () => {
 
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex items-center justify-end space-x-2">
+
+                    {job.status === 'Draft' && (
+                      <button
+                        className="text-blue-600 hover:text-blue-900"
+                        onClick={() => handleSubmitForApproval(job.id)}
+                      >
+                        <span title="Submit for Approval">
+                          <Send className="h-4 w-4" />
+                        </span>
+                      </button>
+                    )}
+
+                    {job.status === 'Pending Approval' &&
+                     (userRole === 'HR_SPOC' || userRole === 'ADMIN') && (
+                      <button
+                        className="text-green-600 hover:text-green-900"
+                        onClick={() => handleApprove(job.id)}
+                        title="Approve Job"
+                      >
+                        <CheckCircle className="h-4 w-4" />
+                      </button>
+                    )}
+
                     <button className="text-primary-600 hover:text-primary-900" onClick={() => handleViewJob(job)}>
                       <Eye className="h-4 w-4" />
                     </button>

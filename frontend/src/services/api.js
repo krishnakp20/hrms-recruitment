@@ -85,7 +85,10 @@ export const jobsAPI = {
   create: (data) => api.post('/jobs', data),
   update: (id, data) => api.put(`/jobs/${id}`, data),
   delete: (id) => api.delete(`/jobs/${id}`),
-  getPoolForJob: (jobId) => api.get(`/jobs/jobs/${jobId}/pool_candidates`)
+  getPoolForJob: (jobId) => api.get(`/jobs/jobs/${jobId}/pool_candidates`),
+  submitForApproval: (jobId) =>
+    api.post(`/jobs/${jobId}/submit-for-approval`),
+  approveJob: (jobId) => api.post(`/jobs/${jobId}/approve`),
 }
 
 // Applications API
