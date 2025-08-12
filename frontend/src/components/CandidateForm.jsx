@@ -174,7 +174,7 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
           </div>
 
           <div>
-            <label htmlFor="cover_letter" className="block text-sm font-medium text-gray-700 mb-1">Cover Letter</label>
+            <label htmlFor="cover_letter" className="block text-sm font-medium text-gray-700 mb-1">Skills</label>
             <textarea id="cover_letter" name="cover_letter" value={formData.cover_letter} onChange={handleChange} className="input-field" />
           </div>
 

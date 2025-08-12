@@ -33,7 +33,7 @@ def get_pool_candidates_to_job(job: JobModel, db: Session) -> List[CandidateMode
     matched = []
     for candidate in pool_candidates:
         # Make sure candidate has experience details
-        candidate_skills = extract_skills(candidate.experience_details or "")
+        candidate_skills = extract_skills(candidate.cover_letter or "")
         skill_match = required_skills.intersection(candidate_skills)
 
         # Experience matching

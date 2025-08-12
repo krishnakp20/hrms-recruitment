@@ -178,12 +178,12 @@ const Dashboard = () => {
             <Link to="/candidates" className="w-full btn-secondary block text-center">
               Add Candidate
             </Link>
-            <Link to="/" className="w-full btn-secondary block text-center">
-              Schedule Interview
-            </Link>
-            <Link to="/" className="w-full btn-secondary block text-center">
-              Generate Report
-            </Link>
+{/*             <Link to="/" className="w-full btn-secondary block text-center"> */}
+{/*               Schedule Interview */}
+{/*             </Link> */}
+{/*             <Link to="/" className="w-full btn-secondary block text-center"> */}
+{/*               Generate Report */}
+{/*             </Link> */}
           </div>
         </div>
       </div>

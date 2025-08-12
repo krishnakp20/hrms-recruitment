@@ -459,6 +459,7 @@ const Jobs = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Pool / Vacancies
               </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date Created</th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>
@@ -480,6 +481,10 @@ const Jobs = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900 font-medium text-blue-600 cursor-pointer underline"
                     onClick={() => handleViewPool(job.id)}>
                   {job.pool_candidate_count || 0} / {job.number_of_vacancies || 0}
+                </td>
+
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {new Date(job.created_at).toLocaleDateString('en-GB').replace(/\//g, '-')}
                 </td>
 
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

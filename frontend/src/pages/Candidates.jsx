@@ -11,7 +11,17 @@ const Candidates = () => {
   const [formOpen, setFormOpen] = useState(false)
   const [editCandidate, setEditCandidate] = useState(null)
   const [viewCandidate, setViewCandidate] = useState(null)
+  const [selectedCity, setSelectedCity] = useState('all')
+  const [selectedExperience, setSelectedExperience] = useState('all')
+  const [selectedSkill, setSelectedSkill] = useState('all')
 
+
+  const experienceOptions = [
+      { label: 'All Experience', value: 'all' },
+      { label: '0-1 years', value: '0-1' },
+      { label: '2-4 years', value: '2-4' },
+      { label: '5+ years', value: '5+' }
+  ]
 
   const fetchCandidates = async () => {
     try {
@@ -21,6 +31,17 @@ const Candidates = () => {
       console.error('Failed to fetch candidates', err)
     }
   }
+
+  const cityOptions = ['all', ...new Set(candidates.map(c => c.location_city).filter(Boolean))]
+
+  const skillOptions = [
+  'all',
+  ...new Set(
+    candidates
+      .flatMap(c => (c.cover_letter ? c.cover_letter.split(',').map(s => s.trim()) : []))
+      .filter(Boolean)
+  )
+]
 
   useEffect(() => {
     fetchCandidates()
@@ -56,7 +77,7 @@ const Candidates = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Applied':
+      case 'New':
         return 'bg-blue-100 text-blue-800'
       case 'Shortlisted':
         return 'bg-yellow-100 text-yellow-800'
@@ -75,8 +96,24 @@ const Candidates = () => {
     const matchesSearch = candidate.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          candidate.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          candidate.email.toLowerCase().includes(searchTerm.toLowerCase())
+
     const matchesStatus = selectedStatus === 'all' || candidate.status === selectedStatus
-    return matchesSearch && matchesStatus
+    const matchesCity = selectedCity === 'all' || candidate.location_city === selectedCity
+
+    let matchesExperience = true
+    if (selectedExperience !== 'all') {
+        const years = Number(candidate.experience_years || 0)
+        if (selectedExperience === '0-1') matchesExperience = years >= 0 && years <= 1
+        if (selectedExperience === '2-4') matchesExperience = years >= 2 && years <= 4
+        if (selectedExperience === '5+') matchesExperience = years >= 5
+    }
+
+    const matchesSkill =
+    selectedSkill === 'all' ||
+    (candidate.cover_letter &&
+      candidate.cover_letter.split(',').map(s => s.trim()).includes(selectedSkill))
+
+    return matchesSearch && matchesStatus && matchesCity && matchesExperience && matchesSkill
   })
 
   const handleResumeUpload = async (candidateId, file) => {
@@ -115,7 +152,7 @@ const Candidates = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search candidates..."
+                placeholder="Search candidates using name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="input-field pl-10"
@@ -135,6 +172,44 @@ const Candidates = () => {
               ))}
             </select>
           </div>
+          <div className="sm:w-48">
+              <select
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                className="input-field"
+              >
+                {cityOptions.map(city => (
+                  <option key={city} value={city}>
+                    {city === 'all' ? 'All Cities' : city}
+                  </option>
+                ))}
+              </select>
+          </div>
+
+          <div className="sm:w-48">
+              <select
+                value={selectedExperience}
+                onChange={(e) => setSelectedExperience(e.target.value)}
+                className="input-field"
+              >
+                {experienceOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+          </div>
+          <div className="sm:w-48">
+              <select
+                value={selectedSkill}
+                onChange={(e) => setSelectedSkill(e.target.value)}
+                className="input-field"
+              >
+                {skillOptions.map(skill => (
+                  <option key={skill} value={skill}>
+                    {skill === 'all' ? 'All Skills' : skill}
+                  </option>
+                ))}
+              </select>
+          </div>
         </div>
       </div>
 
@@ -147,7 +222,9 @@ const Candidates = () => {
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">City</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Experience</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skills</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date Created</th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
           </tr>
         </thead>
@@ -161,11 +238,15 @@ const Candidates = () => {
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.phone}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.location_city}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.experience_years} years</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.cover_letter}</td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(candidate.status)}`}>
                   {candidate.status}
                 </span>
               </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {new Date(candidate.created_at).toLocaleDateString('en-GB').replace(/\//g, '-')}
+                </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex items-center justify-end space-x-2">
                     <button className="text-primary-600 hover:text-primary-900" onClick={() => handleViewClick(candidate)}>

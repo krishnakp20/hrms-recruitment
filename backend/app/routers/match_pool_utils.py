@@ -16,7 +16,7 @@ def match_pool_candidates_to_job(job: Job, candidates: List[Candidate]) -> List[
 
     matched = []
     for candidate in candidates:
-        candidate_skills = extract_skills(candidate.experience_details)
+        candidate_skills = extract_skills(candidate.cover_letter)
         skill_match = required_skills.intersection(candidate_skills)
 
         exp_match = True

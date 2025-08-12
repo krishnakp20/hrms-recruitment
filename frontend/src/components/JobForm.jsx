@@ -7,6 +7,11 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [departments, setDepartments] = useState([])
+  const [jobsList, setJobsList] = useState([])
+  const [workflowTemplates, setWorkflowTemplates] = useState([])
+  const [recruiters, setRecruiters] = useState([])
+  const [agencies, setAgencies] = useState([])
+
   const [formData, setFormData] = useState({
     position_title: '',
     position_code: '',
@@ -173,6 +178,46 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
             </div>
           )}
 
+          {/* Copy from another job */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block mb-2 text-sm font-medium text-gray-700">
+                  Copy Job Details From Another Job
+                </label>
+                <select
+                  className="w-full border rounded-md p-2"
+                  onChange={(e) => handleCopyFromJob(e.target.value)}
+                >
+                  <option value="">Select Job</option>
+                  {jobsList.map(job => (
+                    <option key={job.id} value={job.id}>
+                      {job.position_title} ({job.position_code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block mb-2 text-sm font-medium text-gray-700">
+                  Assign a Recruitment Workflow Template
+                </label>
+                <select
+                  className="w-full border rounded-md p-2"
+                  value={formData.workflow_template_id || ''}
+                  onChange={(e) => setFormData({ ...formData, workflow_template_id: parseInt(e.target.value) })}
+                >
+                  <option value="">Select Template</option>
+                  {workflowTemplates.map(template => (
+                    <option key={template.id} value={template.id}>
+                      {template.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+
+
+
           {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -231,6 +276,52 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
                 className="input-field"
                 placeholder="e.g., G5"
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Recruiters */}
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Assign Recruiters To Fill This Job Position
+              </label>
+              <select
+                multiple
+                className="w-full border rounded-md p-2"
+                value={formData.recruiter_id ? [formData.recruiter_id] : []}
+                onChange={(e) => {
+                  const selected = Array.from(e.target.selectedOptions, opt => parseInt(opt.value))
+                  setFormData({ ...formData, recruiter_id: selected.length ? selected[0] : null })
+                }}
+              >
+                {recruiters.map(rec => (
+                  <option key={rec.id} value={rec.id}>
+                    {rec.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Agencies */}
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Assign Recruitment Agencies To Fill This Job
+              </label>
+              <select
+                multiple
+                className="w-full border rounded-md p-2"
+                value={formData.recruitment_agency_id ? [formData.recruitment_agency_id] : []}
+                onChange={(e) => {
+                  const selected = Array.from(e.target.selectedOptions, opt => parseInt(opt.value))
+                  setFormData({ ...formData, recruitment_agency_id: selected.length ? selected[0] : null })
+                }}
+              >
+                {agencies.map(agency => (
+                  <option key={agency.id} value={agency.id}>
+                    {agency.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
