@@ -64,6 +64,6 @@ async def get_current_user_info(current_user = Depends(get_current_user)):
         "email": current_user.email,
         "username": current_user.username,
         "full_name": current_user.full_name,
-        "role": current_user.upper(),
+        "role": current_user.role.value if current_user.role else None,
         "is_active": current_user.is_active
     } 

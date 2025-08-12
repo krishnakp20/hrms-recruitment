@@ -21,7 +21,7 @@ async def get_dashboard_stats(
     try:
         # Job statistics
         total_jobs = db.query(JobModel).count()
-        active_jobs = db.query(JobModel).filter(JobModel.status == JobStatus.ACTIVE).count()
+        active_jobs = db.query(JobModel).filter(JobModel.status == JobStatus.APPROVED).count()
         pending_approval_jobs = db.query(JobModel).filter(JobModel.status == JobStatus.PENDING_APPROVAL).count()
         draft_jobs = db.query(JobModel).filter(JobModel.status == JobStatus.DRAFT).count()
         
