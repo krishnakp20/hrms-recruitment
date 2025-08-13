@@ -125,7 +125,7 @@ async def get_dashboard_activities(
                 "id": f"job_{job.id}",
                 "type": "application",
                 "message": f"New job created: {job.position_title}",
-                "time": f"{job.created_at.strftime('%Y-%m-%d %H:%M')}"
+                "time": f"{job.created_at.strftime('%d-%m-%Y %H:%M')}"
             })
         
         # Get recent candidates
@@ -135,7 +135,7 @@ async def get_dashboard_activities(
                 "id": f"candidate_{candidate.id}",
                 "type": "application",
                 "message": f"New candidate added: {candidate.first_name} {candidate.last_name}",
-                "time": f"{candidate.created_at.strftime('%Y-%m-%d %H:%M')}"
+                "time": f"{candidate.created_at.strftime('%d-%m-%Y %H:%M')}"
             })
         
         # Get recent applications
@@ -145,7 +145,7 @@ async def get_dashboard_activities(
                 "id": f"application_{application.id}",
                 "type": "application",
                 "message": f"New application submitted",
-                "time": f"{application.applied_at.strftime('%Y-%m-%d %H:%M')}"
+                "time": f"{application.applied_at.strftime('%d-%m-%Y %H:%M')}"
             })
         
         # Sort by time and limit to 10

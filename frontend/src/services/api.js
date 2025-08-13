@@ -52,6 +52,7 @@ export const authAPI = {
   },
   logout: () => api.post('/auth/logout'),
   refresh: () => api.post('/auth/refresh'),
+  getRecruiters: () => api.get('/auth/recruiters'),
 }
 
 // Employees API
@@ -89,6 +90,8 @@ export const jobsAPI = {
   submitForApproval: (jobId) =>
     api.post(`/jobs/${jobId}/submit-for-approval`),
   approveJob: (jobId) => api.post(`/jobs/${jobId}/approve`),
+  getWorkflows: (params) => api.get('/jobs/workflows/', { params }),
+  getAgencies: (params) => api.get('/jobs/agencies/', { params }),
 }
 
 // Applications API

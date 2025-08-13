@@ -459,7 +459,7 @@ const Jobs = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Pool / Vacancies
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date Created</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date Added</th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>

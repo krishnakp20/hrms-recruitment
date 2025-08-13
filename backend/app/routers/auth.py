@@ -5,6 +5,8 @@ from app.core.database import get_db
 from app.core.security import verify_password, create_access_token, get_current_user
 from app.models.user import User
 from app.schemas.auth import Token, UserLogin
+from app.schemas.user import User as UserSchema
+from app.models.user import UserRole
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -66,4 +68,11 @@ async def get_current_user_info(current_user = Depends(get_current_user)):
         "full_name": current_user.full_name,
         "role": current_user.role.value if current_user.role else None,
         "is_active": current_user.is_active
-    } 
+    }
+
+@router.get("/recruiters", response_model=list[UserSchema])
+async def list_recruiters(db: Session = Depends(get_db)):
+    return db.query(User).filter(
+        User.role == UserRole.RECRUITER,
+        User.is_active == True
+    ).all()

@@ -60,6 +60,21 @@ const CandidateView = ({ isOpen, onClose, candidate }) => {
             </div>
           </div>
 
+          <div>
+            <h3 className="text-gray-600 font-semibold mb-2">Source</h3>
+            <div className="space-y-1">
+              <p><strong>Source:</strong> {candidate.source}</p>
+              <p className="text-gray-700">{candidate.source_details}</p>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-gray-600 font-semibold mb-2">Status</h3>
+            <div className="space-y-1">
+              <p><strong>Status:</strong> {candidate.status}</p>
+            </div>
+          </div>
+
           {/* Experience Details */}
           <div className="md:col-span-2">
             <h3 className="text-gray-600 font-semibold mb-2">Experience Details</h3>
@@ -70,9 +85,16 @@ const CandidateView = ({ isOpen, onClose, candidate }) => {
 
           {/* Cover Letter */}
           <div className="md:col-span-2">
-            <h3 className="text-gray-600 font-semibold mb-2">Cover Letter</h3>
+            <h3 className="text-gray-600 font-semibold mb-2">Skills</h3>
             <p className="bg-gray-50 p-3 rounded-md border text-gray-700">
               {candidate.cover_letter}
+            </p>
+          </div>
+
+          <div className="md:col-span-2">
+            <h3 className="text-gray-600 font-semibold mb-2">Notes</h3>
+            <p className="bg-gray-50 p-3 rounded-md border text-gray-700">
+              {candidate.notes}
             </p>
           </div>
         </div>

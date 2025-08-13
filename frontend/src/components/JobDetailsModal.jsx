@@ -28,7 +28,6 @@ const JobDetailsModal = ({ isOpen, onClose, job }) => {
           <div><strong>Reporting Manager:</strong> {job.reporting_to_manager || 'N/A'}</div>
           <div><strong>Location Type:</strong> {job.location_type || 'N/A'}</div>
           <div><strong>Location Details:</strong> {job.location_details || 'N/A'}</div>
-          <div><strong>Required Skills:</strong> {job.required_skills || 'N/A'}</div>
           <div><strong>Experience Level:</strong> {job.experience_level || 'N/A'}</div>
           <div><strong>Number of Vacancies:</strong> {job.number_of_vacancies}</div>
           <div><strong>Compensation:</strong> ₹{job.compensation_min?.toLocaleString()} - ₹{job.compensation_max?.toLocaleString()}</div>
@@ -36,6 +35,11 @@ const JobDetailsModal = ({ isOpen, onClose, job }) => {
           <div><strong>Hiring Deadline:</strong> {job.hiring_deadline}</div>
           <div><strong>Approval Authority:</strong> {job.approval_authority || 'N/A'}</div>
           <div><strong>Status:</strong> {job.status}</div>
+        </div>
+
+        <div className="pt-4">
+          <h3 className="text-lg font-semibold border-b pb-1 mb-2">Required Skills</h3>
+          <p className="text-gray-700 whitespace-pre-wrap">{job.required_skills || 'N/A'}</p>
         </div>
 
         <div className="pt-4">

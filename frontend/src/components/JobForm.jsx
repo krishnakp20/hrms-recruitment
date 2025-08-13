@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, Save, Plus } from 'lucide-react'
-import { jobsAPI } from '../services/api'
+import { jobsAPI, authAPI } from '../services/api'
+import api from '../services/api'
 import axios from 'axios'
 
 const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
@@ -49,7 +50,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
 
     const fetchDepartments = async () => {
       try {
-        const res = await axios.get('http://localhost:8000/jobs/departments/') // Replace with correct backend URL
+        const res = await api.get('/jobs/departments/') // Replace with correct backend URL
         console.log('Departments:', res.data)
 
         const departmentsWithSubs = res.data.map(dept => ({
@@ -65,6 +66,28 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
     }
 
     fetchDepartments()
+
+  const fetchExtras = async () => {
+      try {
+        const [jobsRes, workflowsRes, recruitersRes, agenciesRes] = await Promise.all([
+          jobsAPI.getAll(),
+          jobsAPI.getWorkflows(),
+          authAPI.getRecruiters(),
+          jobsAPI.getAgencies()
+        ])
+
+        setJobsList(jobsRes.data)
+        setWorkflowTemplates(workflowsRes.data)
+        setRecruiters(recruitersRes.data)
+        setAgencies(agenciesRes.data)
+      } catch (err) {
+        console.error('Failed to load extra data', err)
+      }
+    }
+
+    fetchExtras()
+
+
 
     if (editJob) {
       setFormData(prev => ({
@@ -96,6 +119,24 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
       }))
     }
   }, [editJob])
+
+
+  const handleCopyFromJob = async (jobId) => {
+  if (!jobId) return
+  try {
+    const res = await jobsAPI.getById(jobId)
+    const jobData = res.data
+
+    setFormData(prev => ({
+      ...prev,
+      ...jobData,
+      hiring_deadline: jobData.hiring_deadline ? jobData.hiring_deadline.split('T')[0] : ''
+    }))
+  } catch (err) {
+    console.error('Failed to copy job details', err)
+  }
+}
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -281,49 +322,49 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Recruiters */}
-            <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                Assign Recruiters To Fill This Job Position
-              </label>
-              <select
-                multiple
-                className="w-full border rounded-md p-2"
-                value={formData.recruiter_id ? [formData.recruiter_id] : []}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, opt => parseInt(opt.value))
-                  setFormData({ ...formData, recruiter_id: selected.length ? selected[0] : null })
-                }}
-              >
-                {recruiters.map(rec => (
-                  <option key={rec.id} value={rec.id}>
-                    {rec.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Agencies */}
-            <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                Assign Recruitment Agencies To Fill This Job
-              </label>
-              <select
-                multiple
-                className="w-full border rounded-md p-2"
-                value={formData.recruitment_agency_id ? [formData.recruitment_agency_id] : []}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, opt => parseInt(opt.value))
-                  setFormData({ ...formData, recruitment_agency_id: selected.length ? selected[0] : null })
-                }}
-              >
-                {agencies.map(agency => (
-                  <option key={agency.id} value={agency.id}>
-                    {agency.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div>
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              Assign Recruiter To Fill This Job Position
+            </label>
+            <select
+              className="w-full border rounded-md p-2"
+              value={formData.recruiter_id || ""}
+              onChange={(e) =>
+                setFormData({ ...formData, recruiter_id: parseInt(e.target.value) || null })
+              }
+            >
+              <option value="">Select a recruiter</option>
+              {recruiters.map((rec) => (
+                <option key={rec.id} value={rec.id}>
+                  {rec.full_name}
+                </option>
+              ))}
+            </select>
           </div>
+
+          {/* Agencies */}
+          <div>
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              Assign Recruitment Agency To Fill This Job
+            </label>
+            <select
+              className="w-full border rounded-md p-2"
+              value={formData.recruitment_agency_id || ""}
+              onChange={(e) =>
+                setFormData({ ...formData, recruitment_agency_id: parseInt(e.target.value) || null })
+              }
+            >
+              <option value="">Select an agency</option>
+              {agencies.map((agency) => (
+                <option key={agency.id} value={agency.id}>
+                  {agency.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+
 
           {/* Department Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
