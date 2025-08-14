@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, employees, candidates, jobs, applications, dashboard
 from app.core.config import ALLOWED_ORIGINS, HOST, PORT, DEBUG
+from fastapi.staticfiles import StaticFiles
+import os
 
 app = FastAPI(
     title="HRMS Recruitment API",
@@ -9,10 +11,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
+os.makedirs("uploads/resumes", exist_ok=True)
+
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

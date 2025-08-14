@@ -22,7 +22,7 @@ const Layout = () => {
     { name: 'Jobs', href: '/jobs', icon: Briefcase },
 //     { name: 'Employees', href: '/employees', icon: Users },
     { name: 'Candidates', href: '/candidates', icon: UserPlus },
-    { name: 'Applications', href: '/applications', icon: FileText },
+//     { name: 'Applications', href: '/applications', icon: FileText },
   ]
 
   const isActive = (href) => {

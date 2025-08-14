@@ -8,6 +8,7 @@ import Candidates from './pages/Candidates'
 import Jobs from './pages/Jobs'
 import Applications from './pages/Applications'
 import Login from './pages/Login'
+import JobPoolCandidatesPage from './pages/JobPoolCandidatesPage'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
             <Route path="candidates" element={<Candidates />} />
             <Route path="jobs" element={<Jobs />} />
             <Route path="applications" element={<Applications />} />
+            <Route path="/jobs/:jobId/pool-candidates" element={<JobPoolCandidatesPage />} />
           </Route>
         </Routes>
       </div>

@@ -122,7 +122,36 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
 
 
   const handleCopyFromJob = async (jobId) => {
-  if (!jobId) return
+  if (!jobId) {
+      // Reset form to empty values
+    setFormData({
+    position_title: '',
+    position_code: '',
+    level: '',
+    grade: '',
+    department_id: '',
+    sub_department: '',
+    process: '',
+    reporting_to_title: '',
+    reporting_to_manager: '',
+    location_type: 'onsite',
+    location_details: '',
+    required_skills: '',
+    experience_level: '',
+    job_description: '',
+    job_specification: '',
+    number_of_vacancies: 1,
+    compensation_min: '',
+    compensation_max: '',
+    employment_type: 'Full-time',
+    hiring_deadline: '',
+    approval_authority: '',
+    recruiter_id: null,
+    workflow_template_id: null,
+    recruitment_agency_id: null
+    });
+    return;
+  }
   try {
     const res = await jobsAPI.getById(jobId)
     const jobData = res.data

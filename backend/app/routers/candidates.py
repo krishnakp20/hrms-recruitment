@@ -14,6 +14,9 @@ from app.models.candidate import CandidateStatus, CandidateSource
 from app.models.user import UserRole
 import os, shutil
 from app.routers.resume_utils import parse_resume_spacy
+import pandas as pd
+from io import BytesIO
+from fastapi.responses import FileResponse
 
 
 router = APIRouter()
@@ -281,7 +284,8 @@ async def upload_resume(
     # Save file
     upload_dir = "uploads/resumes"
     os.makedirs(upload_dir, exist_ok=True)
-    file_path = os.path.join(upload_dir, f"{candidate_id}_{resume_file.filename}")
+    file_name = f"{candidate_id}_{resume_file.filename}"
+    file_path = os.path.join(upload_dir, file_name)
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(resume_file.file, buffer)
 
@@ -289,7 +293,8 @@ async def upload_resume(
     parsed_data = parse_resume_spacy(file_path)
 
     if parsed_data:
-        candidate.resume_url = f"/{file_path}"
+        backend_url = "http://localhost:8000"
+        candidate.resume_url = f"{backend_url}/uploads/resumes/{file_name}"
         candidate.experience_details = parsed_data.get("experience_summary", "")
         candidate.first_name = parsed_data.get("name", candidate.first_name)
         candidate.email = parsed_data.get("email", candidate.email)
@@ -379,4 +384,100 @@ async def search_candidates(
         )
     
     candidates = query_filter.offset(skip).limit(limit).all()
-    return candidates 
+    return candidates
+
+
+@router.post("/upload-excel/")
+async def upload_candidates_excel(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    import pandas as pd
+    from io import BytesIO
+    import traceback
+
+    if not file.filename.endswith(('.xlsx', '.xls')):
+        raise HTTPException(status_code=400, detail="Invalid file format. Please upload an Excel file.")
+
+    try:
+        contents = await file.read()
+        df = pd.read_excel(BytesIO(contents))
+
+        # Check for required columns
+        required_columns = ["first_name", "last_name", "email", "phone", "source", "status"]
+        missing_cols = [col for col in required_columns if col not in df.columns]
+        if missing_cols:
+            raise HTTPException(status_code=400, detail=f"Missing columns: {', '.join(missing_cols)}")
+
+        # Insert candidates
+        for idx, row in df.iterrows():
+            try:
+                candidate = CandidateModel(
+                    first_name=str(row["first_name"]).strip() if pd.notna(row["first_name"]) else None,
+                    last_name=str(row["last_name"]).strip() if pd.notna(row["last_name"]) else None,
+                    email=str(row["email"]).strip() if pd.notna(row["email"]) else None,
+                    phone=str(row["phone"]).strip() if pd.notna(row["phone"]) else None,
+                    source=CandidateSource(str(row["source"]).strip()),
+                    status=CandidateStatus(str(row["status"]).strip()),
+                    location_state=str(row["location_state"]).strip() if pd.notna(row.get("location_state")) else None,
+                    location_city=str(row["location_city"]).strip() if pd.notna(row.get("location_city")) else None,
+                    experience_years=row.get("experience_years"),
+                    education_qualification_short=str(row.get("education_qualification_short")).strip()
+                        if pd.notna(row.get("education_qualification_short")) else None,
+                )
+                db.add(candidate)
+            except ValueError as ve:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Row {idx + 2}: {ve} (check Enum values for 'source' and 'status')"
+                )
+            except Exception as row_err:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Row {idx + 2} error: {row_err}"
+                )
+
+        db.commit()
+
+        return {"message": f"Candidates uploaded successfully: {len(df)}"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")
+
+
+
+@router.get("/download-template/")
+async def download_template():
+    # Define headers for the Excel template
+    template_data = {
+        "first_name": [""],
+        "last_name": [""],
+        "email": [""],
+        "phone": [""],
+        "location_state": [""],
+        "location_city": [""],
+        "location_area": [""],
+        "location_pincode": [""],
+        "education_qualification_short": [""],
+        "education_qualification_detailed": [""],
+        "experience_years": [""],
+        "experience_details": [""],
+        "notice_period_days": [""],
+        "current_compensation": [""],
+        "expected_compensation": [""],
+        "source": [""],
+        "source_details": [""],
+        "status": [""],
+        "is_in_pool": [""],
+    }
+
+    df = pd.DataFrame(template_data)
+
+    file_path = "candidate_upload_template.xlsx"
+    df.to_excel(file_path, index=False)
+
+    return FileResponse(
+        file_path,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename="candidate_upload_template.xlsx"
+    )

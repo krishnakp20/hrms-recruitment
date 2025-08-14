@@ -3,6 +3,7 @@ import { Plus, Search, Eye, Edit, Trash2, Phone, Mail } from 'lucide-react'
 import CandidateForm from '../components/CandidateForm'
 import { candidatesAPI } from '../services/api'
 import CandidateView from '../components/CandidateView'
+import CandidateActions from '../components/CandidateActions'
 
 const Candidates = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -139,10 +140,14 @@ const Candidates = () => {
           <h1 className="text-2xl font-bold text-gray-900">Candidates</h1>
           <p className="text-gray-600">Manage job candidates and applications</p>
         </div>
+
+        <div className="flex gap-3">
+        <CandidateActions />
         <button className="btn-primary flex items-center" onClick={handleAddClick}>
           <Plus className="h-4 w-4 mr-2" />
           Add Candidate
         </button>
+        </div>
       </div>
 
       <div className="card">
@@ -268,6 +273,18 @@ const Candidates = () => {
                         className="hidden"
                       />
                     </label>
+
+                    {candidate.resume_url && (
+                      <a
+                        href={candidate.resume_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-green-600 hover:text-green-900"
+                        title="Download Resume"
+                      >
+                        ⬇️
+                      </a>
+                    )}
                   </div>
                 </td>
 

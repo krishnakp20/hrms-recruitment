@@ -272,8 +272,10 @@ import JobForm from '../components/JobForm'
 import JobDetailsModal from '../components/JobDetailsModal'
 import JobPoolCandidatesModal from '../components/JobPoolCandidatesModal'
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom'
 
 const Jobs = () => {
+  const navigate = useNavigate()
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -283,8 +285,8 @@ const Jobs = () => {
   const [editingJob, setEditingJob] = useState(null)
   const [showJobDetails, setShowJobDetails] = useState(false)
   const [selectedJob, setSelectedJob] = useState(null)
-  const [showPoolModal, setShowPoolModal] = useState(false)
-  const [selectedJobId, setSelectedJobId] = useState(null)
+//   const [showPoolModal, setShowPoolModal] = useState(false)
+//   const [selectedJobId, setSelectedJobId] = useState(null)
   const { user } = useAuth();
   const userRole = user?.role;
 
@@ -357,10 +359,10 @@ const Jobs = () => {
     setShowJobDetails(false)
   }
 
-  const handleViewPool = (jobId) => {
-      setSelectedJobId(jobId)
-      setShowPoolModal(true)
-  }
+//   const handleViewPool = (jobId) => {
+//       setSelectedJobId(jobId)
+//       setShowPoolModal(true)
+//   }
 
 
   const handleSubmitForApproval = async (jobId) => {
@@ -479,7 +481,7 @@ const Jobs = () => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900 font-medium text-blue-600 cursor-pointer underline"
-                    onClick={() => handleViewPool(job.id)}>
+                    onClick={() => navigate(`/jobs/${job.id}/pool-candidates`)}>
                   {job.pool_candidate_count || 0} / {job.number_of_vacancies || 0}
                 </td>
 
@@ -543,11 +545,11 @@ const Jobs = () => {
           job={selectedJob}
       />
 
-      <JobPoolCandidatesModal
-          isOpen={showPoolModal}
-          onClose={() => setShowPoolModal(false)}
-          jobId={selectedJobId}
-      />
+{/*       <JobPoolCandidatesModal */}
+{/*           isOpen={showPoolModal} */}
+{/*           onClose={() => setShowPoolModal(false)} */}
+{/*           jobId={selectedJobId} */}
+{/*       /> */}
 
     </div>
   )

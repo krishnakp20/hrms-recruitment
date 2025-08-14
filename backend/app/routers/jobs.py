@@ -439,7 +439,7 @@ async def delete_department(department_id: int, db: Session = Depends(get_db), c
     return {"message": "Department deleted successfully"}
 
 
-@router.get("/jobs/{job_id}/pool_candidates", response_model=List[Candidate])
+@router.get("/{job_id}/pool_candidates", response_model=List[Candidate])
 def get_pool_candidates_for_job(job_id: int, db: Session = Depends(get_db)):
     job = db.query(JobModel).filter(JobModel.id == job_id).first()
     if not job:
