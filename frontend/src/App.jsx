@@ -9,6 +9,7 @@ import Jobs from './pages/Jobs'
 import Applications from './pages/Applications'
 import Login from './pages/Login'
 import JobPoolCandidatesPage from './pages/JobPoolCandidatesPage'
+import Careers from './pages/Careers'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
       <div className="min-h-screen bg-gray-50">
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/careers" element={<Careers />} />
           <Route path="/" element={
             <ProtectedRoute>
               <Layout />

@@ -51,6 +51,7 @@ class JobBase(BaseModel):
     recruitment_agency_id: Optional[int] = None
     status: JobStatus = JobStatus.DRAFT
     is_remote: bool = False
+    is_published: bool = False
 
 class JobCreate(JobBase):
     pass

@@ -34,7 +34,7 @@ def get_pool_candidates_to_job(job: JobModel, db: Session) -> List[CandidateMode
     for candidate in pool_candidates:
         # Make sure candidate has experience details
         candidate_skills = extract_skills(candidate.cover_letter or "")
-        skill_match = required_skills.intersection(candidate_skills)
+        skill_match = bool(required_skills.intersection(candidate_skills))
 
         # Experience matching
         exp_match = True
@@ -449,3 +449,29 @@ def get_pool_candidates_for_job(job_id: int, db: Session = Depends(get_db)):
     matched_candidates = match_pool_candidates_to_job(job, pool_candidates)
 
     return matched_candidates
+
+
+@router.post("/{job_id}/publish")
+def publish_job(job_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+
+    if current_user.role not in [UserRole.HR_SPOC, UserRole.ADMIN]:
+        raise HTTPException(status_code=403, detail="Only HR SPOC and admins can publish jobs")
+
+    job = db.query(JobModel).filter(JobModel.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job.status != JobStatus.APPROVED:
+        raise HTTPException(status_code=400, detail="Only approved jobs can be published")
+
+    job.is_published = True
+    db.commit()
+    db.refresh(job)
+    return {"message": "Job published successfully", "job": job}
+
+
+@router.get("/public/careers", response_model=List[Job])
+def list_published_jobs(db: Session = Depends(get_db)):
+
+    jobs = (db.query(JobModel).filter(JobModel.is_published == True, JobModel.status == "Approved").all())
+
+    return jobs

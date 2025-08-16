@@ -390,6 +390,18 @@ const Jobs = () => {
     }
   };
 
+const handlePublishJob = async (jobId) => {
+  try {
+    await jobsAPI.publishJob(jobId);
+    alert("Job published to careers page!");
+    fetchJobs();
+  } catch (err) {
+    console.error("Failed to publish job", err);
+    alert(err.response?.data?.detail || "Failed to publish job");
+  }
+};
+
+
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -523,6 +535,17 @@ const Jobs = () => {
                     <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteJob(job.id)}>
                       <Trash2 className="h-4 w-4" />
                     </button>
+
+                    {job.status === 'Approved' && !job.is_published && (
+                      <button
+                        className="text-indigo-600 hover:text-indigo-900"
+                        onClick={() => handlePublishJob(job.id)}
+                        title="Publish Job"
+                      >
+                        <Send className="h-4 w-4" />
+                      </button>
+                    )}
+
                   </div>
                 </td>
               </tr>

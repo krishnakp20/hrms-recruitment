@@ -92,6 +92,8 @@ export const jobsAPI = {
   approveJob: (jobId) => api.post(`/jobs/${jobId}/approve`),
   getWorkflows: (params) => api.get('/jobs/workflows/', { params }),
   getAgencies: (params) => api.get('/jobs/agencies/', { params }),
+  publishJob: (id) => api.post(`/jobs/${id}/publish`),
+  getPublished: () => api.get("/jobs/public/careers"),
 }
 
 // Applications API

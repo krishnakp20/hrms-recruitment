@@ -54,6 +54,7 @@ class Job(Base):
     recruitment_agency_id = Column(Integer, ForeignKey("recruitment_agencies.id"))
     status = Column(Enum(JobStatus), default=JobStatus.DRAFT)
     is_remote = Column(Boolean, default=False)
+    is_published = Column(Boolean, default=False)
     created_by = Column(Integer, ForeignKey("users.id"))
     approved_by = Column(Integer, ForeignKey("users.id"))
     approved_at = Column(DateTime(timezone=True))
