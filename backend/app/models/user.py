@@ -30,3 +30,13 @@ class User(Base):
     approved_jobs = relationship("Job", foreign_keys="Job.approved_by")
     recruited_jobs = relationship("Job", foreign_keys="Job.recruiter_id")
     created_candidates = relationship("Candidate", foreign_keys="Candidate.created_by") 
+
+
+
+ # Settings fields
+    # role = Column(Enum(UserRole), default=UserRole.CANDIDATE, nullable=False)
+    # is_active = Column(Boolean, default=True)
+    # is_superuser = Column(Boolean, default=False)
+
+    # created_at = Column(DateTime(timezone=True), server_default=func.now())
+    # updated_at = Column(DateTime(timezone=True), onupdate=func.now())

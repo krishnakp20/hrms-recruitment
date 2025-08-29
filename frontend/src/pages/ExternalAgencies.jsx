@@ -1,0 +1,603 @@
+// import { useState, useEffect } from "react"
+// import { Plus, Search, Edit, Trash2 } from "lucide-react"
+// import { externalAPI } from "../services/api"
+
+// const ExternalAgencies = () => {
+//   const [agencies, setAgencies] = useState([])
+//   const [loading, setLoading] = useState(true)
+//   const [error, setError] = useState(null)
+//   const [searchTerm, setSearchTerm] = useState("")
+//   const [selectedStatus, setSelectedStatus] = useState("all")
+//   const [showForm, setShowForm] = useState(false)
+//   const [form, setForm] = useState({ name: "", status: "active" })
+//   const [editingId, setEditingId] = useState(null)
+
+//   // Fetch agencies
+//   const fetchAgencies = async () => {
+//     try {
+//       setLoading(true)
+//       const res = await externalAPI.getAll()
+//       setAgencies(res.data)
+//     } catch (err) {
+//       console.error(err)
+//       setError("Failed to fetch agencies")
+//       setAgencies([])
+//     } finally {
+//       setLoading(false)
+//     }
+//   }
+
+//   useEffect(() => {
+//     fetchAgencies()
+//   }, [])
+
+//   // Filtered agencies
+//   const filteredAgencies = agencies.filter((agency) => {
+//     const matchesSearch = agency.name
+//       .toLowerCase()
+//       .includes(searchTerm.toLowerCase())
+//     const matchesStatus =
+//       selectedStatus === "all" || agency.status === selectedStatus
+//     return matchesSearch && matchesStatus
+//   })
+
+//   // Submit form
+//   const handleSubmit = async (e) => {
+//     e.preventDefault()
+//     try {
+//       if (editingId) {
+//         await externalAPI.update(editingId, form)
+//       } else {
+//         await externalAPI.create(form)
+//       }
+//       setForm({ name: "", status: "active" })
+//       setEditingId(null)
+//       setShowForm(false)
+//       fetchAgencies()
+//     } catch (err) {
+//       console.error(err)
+//       setError("Failed to save agency")
+//     }
+//   }
+
+//   const handleEdit = (agency) => {
+//     setForm({ name: agency.name, status: agency.status })
+//     setEditingId(agency.id)
+//     setShowForm(true)
+//   }
+
+//   const handleDelete = async (id) => {
+//     if (!window.confirm("Are you sure you want to delete this agency?")) return
+//     try {
+//       await externalAPI.delete(id)
+//       fetchAgencies()
+//     } catch (err) {
+//       console.error(err)
+//       setError("Failed to delete agency")
+//     }
+//   }
+
+//   const getStatusColor = (status) => {
+//     switch (status) {
+//       case "active":
+//         return "bg-green-100 text-green-800"
+//       case "inactive":
+//         return "bg-red-100 text-red-800"
+//       default:
+//         return "bg-gray-100 text-gray-800"
+//     }
+//   }
+
+//   return (
+//     <div className="space-y-6">
+//       {/* Header */}
+//       <div className="flex items-center justify-between">
+//         <div>
+//           <h1 className="text-2xl font-bold text-gray-900">External Agencies</h1>
+//           <p className="text-gray-600">Manage partner recruitment agencies</p>
+//         </div>
+//         <button
+//           className="btn-primary flex items-center"
+//           onClick={() => setShowForm(true)}
+//         >
+//           <Plus className="h-4 w-4 mr-2" />
+//           Add Agency
+//         </button>
+//       </div>
+
+//       {/* Filters */}
+//       <div className="card">
+//         <div className="flex flex-col sm:flex-row gap-4">
+//           <div className="flex-1">
+//             <div className="relative">
+//               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+//               <input
+//                 type="text"
+//                 placeholder="Search agencies..."
+//                 value={searchTerm}
+//                 onChange={(e) => setSearchTerm(e.target.value)}
+//                 className="input-field pl-10"
+//               />
+//             </div>
+//           </div>
+//           <div className="sm:w-48">
+//             <select
+//               value={selectedStatus}
+//               onChange={(e) => setSelectedStatus(e.target.value)}
+//               className="input-field"
+//             >
+//               <option value="all">All Status</option>
+//               <option value="active">Active</option>
+//               <option value="inactive">Inactive</option>
+//             </select>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Agencies Table */}
+//       <div className="card overflow-x-auto">
+//         {loading ? (
+//           <p className="p-4">Loading...</p>
+//         ) : (
+//           <table className="min-w-full divide-y divide-gray-200">
+//             <thead className="bg-gray-50">
+//               <tr>
+//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+//                   Name
+//                 </th>
+//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+//                   Status
+//                 </th>
+//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+//                   Created Date
+//                 </th>
+//                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+//                   Actions
+//                 </th>
+//               </tr>
+//             </thead>
+//             <tbody className="bg-white divide-y divide-gray-200">
+//               {filteredAgencies.map((agency) => (
+//                 <tr key={agency.id} className="hover:bg-gray-50">
+//                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+//                     {agency.name}
+//                   </td>
+//                   <td className="px-6 py-4 whitespace-nowrap">
+//                     <span
+//                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+//                         agency.status
+//                       )}`}
+//                     >
+//                       {agency.status}
+//                     </span>
+//                   </td>
+//                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+//                     {new Date(agency.created_date).toLocaleDateString("en-GB")}
+//                   </td>
+//                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+//                     <button
+//                       className="text-gray-600 hover:text-gray-900 mr-3"
+//                       onClick={() => handleEdit(agency)}
+//                     >
+//                       <Edit className="h-4 w-4" />
+//                     </button>
+//                     <button
+//                       className="text-red-600 hover:text-red-900"
+//                       onClick={() => handleDelete(agency.id)}
+//                     >
+//                       <Trash2 className="h-4 w-4" />
+//                     </button>
+//                   </td>
+//                 </tr>
+//               ))}
+//               {filteredAgencies.length === 0 && (
+//                 <tr>
+//                   <td
+//                     colSpan={4}
+//                     className="text-center text-gray-500 py-6 text-sm"
+//                   >
+//                     No agencies found
+//                   </td>
+//                 </tr>
+//               )}
+//             </tbody>
+//           </table>
+//         )}
+//       </div>
+
+//       {/* Modal Form */}
+//       {showForm && (
+//         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+//           <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+//             <h2 className="text-xl font-semibold mb-4">
+//               {editingId ? "Edit Agency" : "Add Agency"}
+//             </h2>
+//             <form onSubmit={handleSubmit} className="space-y-4">
+//               <input
+//                 type="text"
+//                 name="name"
+//                 placeholder="Agency Name"
+//                 value={form.name}
+//                 onChange={(e) => setForm({ ...form, name: e.target.value })}
+//                 className="input-field w-full"
+//                 required
+//               />
+//               <select
+//                 name="status"
+//                 value={form.status}
+//                 onChange={(e) => setForm({ ...form, status: e.target.value })}
+//                 className="input-field w-full"
+//               >
+//                 <option value="active">Active</option>
+//                 <option value="inactive">Inactive</option>
+//               </select>
+//               <div className="flex justify-end gap-2">
+//                 <button
+//                   type="button"
+//                   onClick={() => {
+//                     setShowForm(false)
+//                     setEditingId(null)
+//                     setForm({ name: "", status: "active" })
+//                   }}
+//                   className="px-4 py-2 border rounded-md"
+//                 >
+//                   Cancel
+//                 </button>
+//                 <button type="submit" className="btn-primary px-4 py-2">
+//                   {editingId ? "Update" : "Create"}
+//                 </button>
+//               </div>
+//             </form>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   )
+// }
+
+// export default ExternalAgencies
+
+import { useState, useEffect } from "react";
+import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
+import { externalAPI } from "../services/api";
+
+const ExternalAgencies = () => {
+  const [agencies, setAgencies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ name: "", status: "active" });
+  const [editingId, setEditingId] = useState(null);
+  const [viewAgency, setViewAgency] = useState(null);
+  const [successModal, setSuccessModal] = useState({
+    show: false,
+    message: "",
+  }); // ✅ success modal state
+
+  // Fetch agencies
+  const fetchAgencies = async () => {
+    try {
+      setLoading(true);
+      const res = await externalAPI.getAll();
+      setAgencies(res.data);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to fetch agencies");
+      setAgencies([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAgencies();
+  }, []);
+
+  useEffect(() => {
+    if (successModal.show) {
+      const timer = setTimeout(() => {
+        setSuccessModal({ show: false, message: "" });
+      }, 4000); // 👈 4 seconds instead of 2
+      return () => clearTimeout(timer);
+    }
+  }, [successModal.show]);
+
+  // Filtered agencies
+  const filteredAgencies = agencies.filter((agency) => {
+    const matchesSearch = agency.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      selectedStatus === "all" || agency.status === selectedStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  // Submit form
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingId) {
+        await externalAPI.update(editingId, form);
+        setSuccessModal({
+          show: true,
+          message: "Agency updated successfully!",
+        });
+      } else {
+        await externalAPI.create(form);
+        setSuccessModal({
+          show: true,
+          message: "Agency created successfully!",
+        });
+      }
+      setForm({ name: "", status: "active" });
+      setEditingId(null);
+      setShowForm(false);
+      fetchAgencies();
+    } catch (err) {
+      console.error(err);
+      setError("Failed to save agency");
+    }
+  };
+
+  const handleEdit = (agency) => {
+    setForm({ name: agency.name, status: agency.status });
+    setEditingId(agency.id);
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this agency?")) return;
+    try {
+      await externalAPI.delete(id);
+      fetchAgencies();
+      setSuccessModal({ show: true, message: "Agency deleted successfully!" });
+    } catch (err) {
+      console.error(err);
+      setError("Failed to delete agency");
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "active":
+        return "bg-green-100 text-green-800";
+      case "inactive":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            External Agencies
+          </h1>
+        </div>
+        <button
+          className="btn-primary flex items-center"
+          onClick={() => setShowForm(true)}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Agency
+        </button>
+      </div>
+
+      {/* Filters */}
+      <div className="card">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search agencies..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="input-field pl-10"
+              />
+            </div>
+          </div>
+          <div className="sm:w-48">
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="input-field"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Agencies Table */}
+      <div className="card overflow-x-auto">
+        {loading ? (
+          <p className="p-4">Loading...</p>
+        ) : (
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Created Date
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredAgencies.map((agency) => (
+                <tr key={agency.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {agency.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                        agency.status
+                      )}`}
+                    >
+                      {agency.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {new Date(agency.created_date).toLocaleDateString("en-GB")}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
+                    <button
+                      className="text-blue-600 hover:text-blue-900"
+                      onClick={() => setViewAgency(agency)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </button>
+                    <button
+                      className="text-gray-600 hover:text-gray-900"
+                      onClick={() => handleEdit(agency)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button
+                      className="text-red-600 hover:text-red-900"
+                      onClick={() => handleDelete(agency.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {filteredAgencies.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="text-center text-gray-500 py-6 text-sm"
+                  >
+                    No agencies found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Modal Form */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            <h2 className="text-xl font-semibold mb-4">
+              {editingId ? "Edit Agency" : "Add Agency"}
+            </h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="text"
+                name="name"
+                placeholder="Agency Name"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="input-field w-full"
+                required
+              />
+              <select
+                name="status"
+                value={form.status}
+                onChange={(e) => setForm({ ...form, status: e.target.value })}
+                className="input-field w-full"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditingId(null);
+                    setForm({ name: "", status: "active" });
+                  }}
+                  className="px-4 py-2 border rounded-md"
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary px-4 py-2">
+                  {editingId ? "Update" : "Create"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Modal */}
+      {viewAgency && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            {/* Close button (top-right inside modal) */}
+            <button
+              onClick={() => setViewAgency(null)}
+              className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
+            >
+              ✕
+            </button>
+
+            <h2 className="text-xl font-semibold mb-4">Agency Details</h2>
+            <p>
+              <strong>ID:</strong> {viewAgency.id}
+            </p>
+            <p>
+              <strong>Name:</strong> {viewAgency.name}
+            </p>
+            <p>
+              <strong>Status:</strong> {viewAgency.status}
+            </p>
+            <p>
+              <strong>Created At:</strong>{" "}
+              {new Date(viewAgency.created_date).toLocaleString()}
+            </p>
+
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setViewAgency(null)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {successModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6 text-center">
+            <h2 className="text-lg font-semibold text-green-600 mb-4">
+              {successModal.message}
+            </h2>
+            <button
+              onClick={() => setSuccessModal({ show: false, message: "" })}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ExternalAgencies;

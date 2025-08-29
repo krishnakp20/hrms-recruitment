@@ -10,6 +10,12 @@ import Applications from './pages/Applications'
 import Login from './pages/Login'
 import JobPoolCandidatesPage from './pages/JobPoolCandidatesPage'
 import Careers from './pages/Careers'
+import ExternalAgencies from './pages/ExternalAgencies'
+import CandidateProfilePage from "./pages/CandidateProfilePage";
+
+
+
+
 
 function App() {
   return (
@@ -29,6 +35,9 @@ function App() {
             <Route path="jobs" element={<Jobs />} />
             <Route path="applications" element={<Applications />} />
             <Route path="/jobs/:jobId/pool-candidates" element={<JobPoolCandidatesPage />} />
+            <Route path="external-agencies" element={<ExternalAgencies />} /> {/* <-- Added */}
+            <Route path="candidate-profile" element={<CandidateProfilePage />} />
+
           </Route>
         </Routes>
       </div>
