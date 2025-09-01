@@ -314,6 +314,42 @@ const ExternalAgencies = () => {
     return matchesSearch && matchesStatus;
   });
 
+
+  // ✅ date formatter helper
+  const formatDate = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+
+  const options = {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  };
+
+  return date.toLocaleDateString("en-GB", options).replace(/ /g, "/");
+};
+
+
+  // ✅ date + time formatter helper
+const formatDateTime = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+
+  const options = {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  };
+
+  // Example: "01 Sept 2025, 7:14:04 pm"
+  return date.toLocaleString("en-GB", options).replace(/ /g, " ");
+};
+
+
   // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -446,16 +482,28 @@ const ExternalAgencies = () => {
                     {agency.name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span
+                    {/* <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
                         agency.status
                       )}`}
                     >
                       {agency.status}
+                    </span> */}
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                        agency.status
+                      )}`}
+                    >
+                      {agency.status.charAt(0).toUpperCase() +
+                        agency.status.slice(1)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {new Date(agency.created_date).toLocaleDateString("en-GB")}
+                  </td> */}
+                  {/* ✅ formatted date */}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {formatDate(agency.created_date)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
                     <button
@@ -560,12 +608,18 @@ const ExternalAgencies = () => {
             <p>
               <strong>Name:</strong> {viewAgency.name}
             </p>
-            <p>
+            {/* <p>
               <strong>Status:</strong> {viewAgency.status}
+            </p> */}
+            <p>
+              <strong>Status:</strong>{" "}
+              {viewAgency.status.charAt(0).toUpperCase() +
+                viewAgency.status.slice(1)}
             </p>
             <p>
               <strong>Created At:</strong>{" "}
-              {new Date(viewAgency.created_date).toLocaleString()}
+               {formatDateTime(viewAgency.created_date)}
+              {/* {new Date(viewAgency.created_date).toLocaleString()} */}
             </p>
 
             <div className="flex justify-end mt-6">

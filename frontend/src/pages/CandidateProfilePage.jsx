@@ -8,12 +8,35 @@ const CandidateProfileFields = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
+  // const [form, setForm] = useState({
+  //   field_name: "",
+  //   field_type: "text",
+  //   is_default: false,
+  //   is_mandatory: false,
+  // });
+
+  // ✅ Field type labels mapping
+  const fieldTypes = [
+    { value: "single_line", label: "Single Line" },
+    { value: "multi_line", label: "Multi Line" },
+    { value: "number", label: "Number" },
+    { value: "dropdown", label: "Dropdown" },
+    { value: "date", label: "Date" },
+  ];
+
+  const getFieldTypeLabel = (value) => {
+    const type = fieldTypes.find((t) => t.value === value);
+    return type ? type.label : value;
+  };
+
+  // Form state with values
   const [form, setForm] = useState({
     field_name: "",
-    field_type: "text",
+    field_type: "single_line", // default
     is_default: false,
     is_mandatory: false,
   });
+
   const [editingId, setEditingId] = useState(null);
   const [viewField, setViewField] = useState(null);
   const [successModal, setSuccessModal] = useState({
@@ -56,6 +79,34 @@ const CandidateProfileFields = () => {
       f.field_type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+   // ✅ date formatter helper 
+  const newDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const options = { day: "2-digit", month: "short", year: "numeric" };
+    return date.toLocaleDateString("en-GB", options).replace(/ /g, "/");
+  };
+
+
+  // ✅ date + time formatter helper
+  const formatDateTime = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+
+  const options = {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  };
+
+  // Example: "01 Sept 2025, 7:14:04 pm"
+  return date.toLocaleString("en-GB", options).replace(/ /g, " ");
+};
+
   // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -69,7 +120,7 @@ const CandidateProfileFields = () => {
       }
       setForm({
         field_name: "",
-        field_type: "text",
+      field_type: "single_line",
         is_default: false,
         is_mandatory: false,
       });
@@ -152,7 +203,7 @@ const CandidateProfileFields = () => {
 
           {/* Optional: Field Type Dropdown */}
           <div className="sm:w-48">
-            <select
+            {/* <select
               onChange={(e) => setSearchTerm(e.target.value)}
               className="input-field"
             >
@@ -161,6 +212,17 @@ const CandidateProfileFields = () => {
               <option value="number">Number</option>
               <option value="dropdown">Dropdown</option>
               <option value="date">Date</option>
+            </select> */}
+            <select
+              value={form.field_type}
+              onChange={(e) => setForm({ ...form, field_type: e.target.value })}
+              className="input-field w-full"
+            >
+              {fieldTypes.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -201,7 +263,7 @@ const CandidateProfileFields = () => {
                     {field.field_name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {field.field_type}
+                    {getFieldTypeLabel(field.field_type)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {field.is_default ? "Yes" : "No"}
@@ -209,8 +271,12 @@ const CandidateProfileFields = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     {field.is_mandatory ? "Yes" : "No"}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  {/* <td className="px-6 py-4 whitespace-nowrap">
                     {new Date(field.created_at).toLocaleDateString("en-GB")}
+                  </td> */}
+                  {/* ✅ formatted date */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {newDate(field.created_at)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
                     <button
@@ -267,6 +333,7 @@ const CandidateProfileFields = () => {
                 className="input-field w-full"
                 required
               />
+              {/* Field Type Dropdown */}
               <select
                 value={form.field_type}
                 onChange={(e) =>
@@ -274,11 +341,13 @@ const CandidateProfileFields = () => {
                 }
                 className="input-field w-full"
               >
-                <option value="text">Text</option>
-                <option value="number">Number</option>
-                <option value="dropdown">Dropdown</option>
-                <option value="date">Date</option>
+                {fieldTypes.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
               </select>
+
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -344,7 +413,7 @@ const CandidateProfileFields = () => {
               <strong>Name:</strong> {viewField.field_name}
             </p>
             <p>
-              <strong>Type:</strong> {viewField.field_type}
+              <strong>Type:</strong> {getFieldTypeLabel(viewField.field_type)}
             </p>
             <p>
               <strong>Default:</strong> {viewField.is_default ? "Yes" : "No"}
@@ -355,7 +424,8 @@ const CandidateProfileFields = () => {
             </p>
             <p>
               <strong>Created At:</strong>{" "}
-              {new Date(viewField.created_at).toLocaleString()}
+              {/* {newDate(viewField.created_at).toLocaleString()} */}
+                {formatDateTime(viewField.created_at)}
             </p>
             <div className="flex justify-end mt-6">
               <button

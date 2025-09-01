@@ -130,4 +130,13 @@ export const candidateProfileAPI = {
   delete: (id) => api.delete(`/candidate-fields/${id}`),
 };
 
+
+export const workflowTemplateAPI = {
+  getAll: (params) => api.get("/workflow-templates", { params }),
+  getById: (id) => api.get(`/workflow-templates/${id}`),
+  create: (data) => api.post("/workflow-templates", data),
+  update: (id, data) => api.put(`/workflow-templates/${id}`, data),
+  delete: (id) => api.delete(`/workflow-templates/${id}`),
+};
+
 export default api 
