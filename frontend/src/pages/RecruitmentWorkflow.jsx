@@ -464,12 +464,15 @@ const RecruitmentWorkflowTemplates = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [showForm, setShowForm] = useState(false);
+  const [stepName, setStepName] = useState("");
+  const [stepDescription, setStepDescription] = useState("");
   const [form, setForm] = useState({
-    template_name: "",
-    stages: [],
-    status: "active", // ✅ always a string in frontend
+    name: "",
+    description: "",
+    steps: [],
+    is_active: true, // ✅ always a string in frontend
   });
-  const [stageInput, setStageInput] = useState("");
+  const [stageInput, setStageInput] = useState({ name: "", description: "" });
   const [editingId, setEditingId] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
   const [viewTemplate, setViewTemplate] = useState(null);
@@ -480,11 +483,52 @@ const RecruitmentWorkflowTemplates = () => {
   const [statusFilter, setStatusFilter] = useState(""); // ✅ New state for status filter
 
   // Fetch all templates
+  // const fetchTemplates = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const res = await workflowTemplateAPI.getAll();
+  //     setTemplates(res.data);
+  //   } catch (err) {
+  //     console.error(err);
+  //     setError("Failed to fetch workflow templates");
+  //     setTemplates([]);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  //  const fetchTemplates = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const res = await workflowTemplateAPI.getAll();
+  //     // Ensure steps are parsed if backend returns JSON strings
+  //     const data = res.data.map((t) => ({
+  //       ...t,
+  //       steps: Array.isArray(t.steps)
+  //         ? t.steps
+  //         : t.steps
+  //         ? JSON.parse(t.steps)
+  //         : [],
+  //     }));
+  //     setTemplates(data);
+  //   } catch (err) {
+  //     console.error(err);
+  //     setError("Failed to fetch workflow templates");
+  //     setTemplates([]);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const fetchTemplates = async () => {
     try {
       setLoading(true);
       const res = await workflowTemplateAPI.getAll();
-      setTemplates(res.data);
+      const data = res.data.map((t) => ({
+        ...t,
+        steps: Array.isArray(t.steps) ? t.steps : [], // ✅ keep as list
+      }));
+      setTemplates(data);
     } catch (err) {
       console.error(err);
       setError("Failed to fetch workflow templates");
@@ -511,10 +555,25 @@ const RecruitmentWorkflowTemplates = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // const payload = {
+      //   name: form.name,
+      //   description: form.description,
+      //   steps: form.steps.join(", "),
+      //   is_active: form.is_active ? 1 : 0, // backend expects tinyint// ✅ backend expects this
+      // };
+
+      //   const payload = {
+      //   name: form.name,
+      //   description: form.description,
+      //   steps: JSON.stringify(form.steps), // ✅ store full objects
+      //   is_active: form.is_active ? 1 : 0,
+      // };
+
       const payload = {
-        template_name: form.template_name,
-        stages: form.stages,
-        status: form.status === "active" ? "Active" : "Inactive", // ✅ backend expects this
+        name: form.name,
+        description: form.description,
+        steps: form.steps, // ✅ send as real array, not string
+        is_active: form.is_active ? 1 : 0,
       };
 
       console.log("Submitting payload:", payload);
@@ -541,18 +600,41 @@ const RecruitmentWorkflowTemplates = () => {
     }
   };
 
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
   const resetForm = () => {
-    setForm({ template_name: "", stages: [], status: "active" }); // ✅ reset to string
-    setStageInput("");
+    setForm({ name: "", description: "", steps: [], is_active: true }); // ✅ reset to string
+    setStageInput({ name: "", description: "" });
     setEditingId(null);
+    setEditingIndex(null);
     setShowForm(false);
   };
 
+  // const handleEdit = (template) => {
+  //   setForm({
+  //     name: template.name,
+  //     description: template.description,
+  //   steps: Array.isArray(template.steps)
+  //     ? template.steps.join(", ")
+  //     : template.steps || "",
+  //   is_active: !!template.is_active, // ✅ map backend → frontend
+  //   });
+  //   setEditingId(template.id);
+  //   setShowForm(true);
+  // };
+
   const handleEdit = (template) => {
     setForm({
-      template_name: template.template_name,
-      stages: template.stages,
-      status: template.status === "Active" ? "active" : "inactive", // ✅ map backend → frontend
+      name: template.name,
+      description: template.description,
+      steps: Array.isArray(template.steps)
+        ? template.steps
+        : template.steps
+        ? JSON.parse(template.steps)
+        : [],
+      is_active: !!template.is_active,
     });
     setEditingId(template.id);
     setShowForm(true);
@@ -576,54 +658,77 @@ const RecruitmentWorkflowTemplates = () => {
 
   // Filter templates by search + status
 
+  // const filteredTemplates = templates.filter((template) => {
+  //   const lowerSearch = searchTerm.toLowerCase();
+
+  //   const matchesSearch =
+  //     template.template_name.toLowerCase().includes(lowerSearch) ||
+  //     (template.description?.toLowerCase().includes(lowerSearch) ?? false);
+
+  //   const matchesStatus =
+  //     selectedStatus === "" ||
+  //     selectedStatus.toLowerCase() === "all" ||
+  //     template.status.toLowerCase() === selectedStatus.toLowerCase();
+
+  //   return matchesSearch && matchesStatus;
+  // });
+
+  // Filter templates by search + status
   const filteredTemplates = templates.filter((template) => {
     const lowerSearch = searchTerm.toLowerCase();
 
     const matchesSearch =
-      template.template_name.toLowerCase().includes(lowerSearch) ||
-      (template.description?.toLowerCase().includes(lowerSearch) ?? false);
+      (template.name?.toLowerCase().includes(lowerSearch) ?? false) ||
+      (template.description?.toLowerCase().includes(lowerSearch) ?? false) ||
+      (Array.isArray(template.steps)
+        ? template.steps.some(
+            (s) =>
+              s.name?.toLowerCase().includes(lowerSearch) ||
+              s.description?.toLowerCase().includes(lowerSearch)
+          )
+        : false);
 
     const matchesStatus =
       selectedStatus === "" ||
       selectedStatus.toLowerCase() === "all" ||
-      template.status.toLowerCase() === selectedStatus.toLowerCase();
+      (template.is_active ? "active" : "inactive") ===
+        selectedStatus.toLowerCase();
 
     return matchesSearch && matchesStatus;
   });
 
-    // ✅ date formatter helper
+  // ✅ date formatter helper
   const formatDate = (dateString) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
+    if (!dateString) return "";
+    const date = new Date(dateString);
 
-  const options = {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
+    const options = {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    };
+
+    return date.toLocaleDateString("en-GB", options).replace(/ /g, "/");
   };
-
-  return date.toLocaleDateString("en-GB", options).replace(/ /g, "/");
-};
-
 
   // ✅ date + time formatter helper
-const formatDateTime = (dateString) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
 
-  const options = {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
+    const options = {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    };
+
+    // Example: "01 Sept 2025, 7:14:04 pm"
+    return date.toLocaleString("en-GB", options).replace(/ /g, " ");
   };
-
-  // Example: "01 Sept 2025, 7:14:04 pm"
-  return date.toLocaleString("en-GB", options).replace(/ /g, " ");
-};
 
   return (
     <div className="space-y-6">
@@ -679,14 +784,17 @@ const formatDateTime = (dateString) => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Template Name
+                  Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Stages
+                  Steps
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Status
                 </th>
+                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Description
+                </th> */}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Created At
                 </th>
@@ -698,16 +806,16 @@ const formatDateTime = (dateString) => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredTemplates.map((t) => (
                 <tr key={t.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">{t.template_name}</td>
+                  <td className="px-6 py-4">{t.name}</td>
                   <td className="px-6 py-4">
-                    {t.stages && t.stages.join(", ")}
+                    {Array.isArray(t.steps) ? t.steps.length : 0}
                   </td>
+
                   <td className="px-6 py-4">
-                    {t.status === "Active" ? "Active" : "Inactive"} {/* ✅ */}
+                    {t.is_active ? "Active" : "Inactive"}
                   </td>
-                  <td className="px-6 py-4">
-                    {formatDate (t.created_at)}
-                  </td>
+
+                  <td className="px-6 py-4">{formatDate(t.created_at)}</td>
                   <td className="px-6 py-4 text-right space-x-3">
                     <button
                       className="text-blue-600 hover:text-blue-900"
@@ -744,110 +852,166 @@ const formatDateTime = (dateString) => {
 
       {/* Modal Form */}
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+          <div className="relative bg-white rounded-lg shadow-lg w-full max-w-2xl p-6">
             <button
               onClick={resetForm}
               className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
             >
               ✕
             </button>
+
             <h2 className="text-xl font-semibold mb-4">
-              {editingId ? "Edit Template" : "Add Template"}
+              {editingId
+                ? "Edit Recruitment Workflow Template"
+                : "Add Recruitment Workflow Template"}
             </h2>
+
             <form onSubmit={handleSubmit} className="space-y-4">
-              <input
-                type="text"
-                placeholder="Template Name"
-                value={form.template_name}
-                onChange={(e) =>
-                  setForm({ ...form, template_name: e.target.value })
-                }
-                className="input-field w-full"
-                required
-              />
-              {/* Stages Input */}
+              {/* Template Name */}
               <div>
+                <label className="block text-sm font-medium mb-1">
+                  Recruitment Workflow Template Name{" "}
+                  <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter template name"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="w-full border rounded p-2"
+                  required
+                />
+              </div>
+
+              {/* Recruitment Stages Section */}
+              <div>
+                <label className="block text-sm font-medium text-pink-600 mb-2">
+                  Recruitment Stages
+                </label>
+                <div className="space-y-2 mb-3">
+                  {form.steps.length > 0 ? (
+                    form.steps.map((s, i) => (
+                      <div
+                        key={i}
+                        className="flex justify-between items-start border-b pb-2"
+                      >
+                        <div>
+                          <p className="font-medium">{s.name}</p>
+                          <p className="text-sm text-gray-600">
+                            {s.description}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            className="text-blue-500 text-xs"
+                            onClick={() => {
+                              setStageInput(s);
+                              setEditingIndex(i);
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="text-red-500 text-xs"
+                            onClick={() => {
+                              const updated = form.steps.filter(
+                                (_, idx) => idx !== i
+                              );
+                              setForm({ ...form, steps: updated });
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-400 text-sm">
+                      No stages added yet.
+                    </p>
+                  )}
+                </div>
+
+                {/* Stage Input */}
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="Add stage..."
-                    value={stageInput}
-                    onChange={(e) => setStageInput(e.target.value)}
-                    className="input-field flex-1"
+                    placeholder="Stage Name"
+                    value={stageInput?.name || ""}
+                    onChange={(e) =>
+                      setStageInput({ ...stageInput, name: e.target.value })
+                    }
+                    className="flex-1 border rounded p-2"
+                  />
+                  <textarea
+                    placeholder="Description"
+                    value={stageInput?.description || ""}
+                    onChange={(e) =>
+                      setStageInput({
+                        ...stageInput,
+                        description: e.target.value,
+                      })
+                    }
+                    className="flex-1 border rounded p-2"
+                    rows={1}
                   />
                   <button
                     type="button"
                     onClick={() => {
-                      if (stageInput.trim()) {
+                      if (
+                        stageInput?.name?.trim() &&
+                        stageInput?.description?.trim()
+                      ) {
                         if (editingIndex !== null) {
-                          const updatedStages = [...form.stages];
-                          updatedStages[editingIndex] = stageInput.trim();
-                          setForm({ ...form, stages: updatedStages });
+                          const updated = [...form.steps];
+                          updated[editingIndex] = {
+                            name: stageInput.name.trim(),
+                            description: stageInput.description.trim(),
+                          };
+                          setForm({ ...form, steps: updated });
                           setEditingIndex(null);
                         } else {
                           setForm({
                             ...form,
-                            stages: [...form.stages, stageInput.trim()],
+                            steps: [
+                              ...form.steps,
+                              {
+                                name: stageInput.name.trim(),
+                                description: stageInput.description.trim(),
+                              },
+                            ],
                           });
                         }
-                        setStageInput("");
+                        setStageInput({ name: "", description: "" });
                       }
                     }}
-                    className="btn-primary px-3"
+                    className="bg-orange-500 text-white px-4 py-2 rounded"
                   >
                     {editingIndex !== null ? "Update" : "Add"}
                   </button>
                 </div>
-
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {form.stages.map((s, i) => (
-                    <span
-                      key={i}
-                      className="px-2 py-1 bg-gray-200 rounded-md text-sm flex items-center gap-2"
-                    >
-                      {s}
-                      <button
-                        type="button"
-                        className="text-blue-500 text-xs"
-                        onClick={() => {
-                          setStageInput(s);
-                          setEditingIndex(i);
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="text-red-500 text-xs"
-                        onClick={() => {
-                          const updatedStages = form.stages.filter(
-                            (_, idx) => idx !== i
-                          );
-                          setForm({ ...form, stages: updatedStages });
-                        }}
-                      >
-                        ✕
-                      </button>
-                    </span>
-                  ))}
-                </div>
               </div>
 
               {/* Status */}
-              <label className="flex flex-col gap-2">
-                <span>Status</span>
+              <div>
+                <label className="block text-sm font-medium mb-1">Status</label>
                 <select
-                  value={form.status}
-                  onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="border rounded p-2"
+                  value={form.is_active ? "active" : "inactive"}
+                  onChange={(e) =>
+                    setForm({ ...form, is_active: e.target.value === "active" })
+                  }
+                  className="w-full border rounded p-2"
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
-              </label>
+              </div>
 
-              <div className="flex justify-end gap-2">
+              {/* Buttons */}
+              <div className="flex justify-end gap-2 pt-3">
                 <button
                   type="button"
                   onClick={resetForm}
@@ -855,8 +1019,11 @@ const formatDateTime = (dateString) => {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn-primary px-4 py-2">
-                  {editingId ? "Update" : "Create"}
+                <button
+                  type="submit"
+                  className="bg-orange-500 text-white px-4 py-2 rounded"
+                >
+                  Save
                 </button>
               </div>
             </form>
@@ -866,32 +1033,63 @@ const formatDateTime = (dateString) => {
 
       {/* View Modal */}
       {viewTemplate && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
           <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            {/* Close Button */}
             <button
               onClick={() => setViewTemplate(null)}
               className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
             >
               ✕
             </button>
+
             <h2 className="text-xl font-semibold mb-4">Template Details</h2>
-            <p>
-              <strong>ID:</strong> {viewTemplate.id}
-            </p>
-            <p>
-              <strong>Name:</strong> {viewTemplate.template_name}
-            </p>
-            <p>
-              <strong>Stages:</strong> {viewTemplate.stages.join(", ")}
-            </p>
-            <p>
-              <strong>Status:</strong>{" "}
-              {viewTemplate.status === "Active" ? "Active" : "Inactive"}
-            </p>
-            <p>
-              <strong>Created At:</strong>{" "}
-              {formatDateTime(viewTemplate.created_at)}
-            </p>
+
+            {/* Template Info */}
+            <div className="space-y-2">
+              <p>
+                <strong>ID:</strong> {viewTemplate.id}
+              </p>
+              <p>
+                <strong>Name:</strong>{" "}
+                {viewTemplate.name || viewTemplate.template_name}
+              </p>
+
+              {/* Stages Section */}
+              <div>
+                <strong>Stages:</strong>
+                {Array.isArray(viewTemplate.steps) &&
+                viewTemplate.steps.length > 0 ? (
+                  <ul className="list-disc list-inside mt-1 space-y-1">
+                    {viewTemplate.steps.map((s, i) => (
+                      <li key={i}>
+                        <p>
+                          <strong>Stage {i + 1} Name:</strong> {s.name}
+                        </p>
+                        <p>
+                          <strong>Description:</strong> {s.description || "-"}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-1">No stages added</p>
+                )}
+              </div>
+
+              <p>
+                <strong>Status:</strong>{" "}
+                {viewTemplate.is_active ? "Active" : "Inactive"}
+              </p>
+              <p>
+                <strong>Created At:</strong>{" "}
+                {viewTemplate.created_at
+                  ? formatDateTime(viewTemplate.created_at)
+                  : "N/A"}
+              </p>
+            </div>
+
+            {/* Close Button */}
             <div className="flex justify-end mt-6">
               <button
                 onClick={() => setViewTemplate(null)}
