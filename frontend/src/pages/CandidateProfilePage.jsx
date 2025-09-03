@@ -79,7 +79,7 @@ const CandidateProfileFields = () => {
       f.field_type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-   // ✅ date formatter helper 
+  // ✅ date formatter helper
   const newDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -87,25 +87,24 @@ const CandidateProfileFields = () => {
     return date.toLocaleDateString("en-GB", options).replace(/ /g, "/");
   };
 
-
   // ✅ date + time formatter helper
   const formatDateTime = (dateString) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
+    if (!dateString) return "";
+    const date = new Date(dateString);
 
-  const options = {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
+    const options = {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    };
+
+    // Example: "01 Sept 2025, 7:14:04 pm"
+    return date.toLocaleString("en-GB", options).replace(/ /g, " ");
   };
-
-  // Example: "01 Sept 2025, 7:14:04 pm"
-  return date.toLocaleString("en-GB", options).replace(/ /g, " ");
-};
 
   // Submit form
   const handleSubmit = async (e) => {
@@ -120,7 +119,7 @@ const CandidateProfileFields = () => {
       }
       setForm({
         field_name: "",
-      field_type: "single_line",
+        field_type: "single_line",
         is_default: false,
         is_mandatory: false,
       });
@@ -318,7 +317,7 @@ const CandidateProfileFields = () => {
       {/* Modal Form */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl p-6">
             <h2 className="text-xl font-semibold mb-4">
               {editingId ? "Edit Field" : "Add Field"}
             </h2>
@@ -397,15 +396,19 @@ const CandidateProfileFields = () => {
       {/* View Modal */}
       {viewField && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
-            {/* Close button (top-right inside modal) */}
-            <button
-              onClick={() => setViewField(null)}
-              className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
-            >
-              ✕
-            </button>
-            <h2 className="text-xl font-semibold mb-4">Field Details</h2>
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl space-y-4 max-h-[70vh] p-6">
+            <div className="flex justify-between items-center border-b pb-2">
+              <h2 className="text-xl font-semibold mb-4">Field Details</h2>
+
+              {/* Close button (top-right inside modal) */}
+              <button
+                onClick={() => setViewField(null)}
+                className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
+              >
+                ✕
+              </button>
+            </div>
+
             <p>
               <strong>ID:</strong> {viewField.id}
             </p>
@@ -425,7 +428,7 @@ const CandidateProfileFields = () => {
             <p>
               <strong>Created At:</strong>{" "}
               {/* {newDate(viewField.created_at).toLocaleString()} */}
-                {formatDateTime(viewField.created_at)}
+              {formatDateTime(viewField.created_at)}
             </p>
             <div className="flex justify-end mt-6">
               <button

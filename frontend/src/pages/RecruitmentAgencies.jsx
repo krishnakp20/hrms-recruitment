@@ -259,16 +259,24 @@
 
 import { useState, useEffect } from "react";
 import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
-import { externalAPI } from "../services/api";
+import { recruitmentAgencyAPI } from "../services/api";
 
-const ExternalAgencies = () => {
+const RecruitmentAgencies = () => {
   const [agencies, setAgencies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: "", status: "active" });
+  const [form, setForm] = useState({
+    name: "",
+    contact_person: "",
+    email: "",
+    phone: "",
+    website: "",
+    is_active: true,
+  });
+
   const [editingId, setEditingId] = useState(null);
   const [viewAgency, setViewAgency] = useState(null);
   const [successModal, setSuccessModal] = useState({
@@ -280,7 +288,7 @@ const ExternalAgencies = () => {
   const fetchAgencies = async () => {
     try {
       setLoading(true);
-      const res = await externalAPI.getAll();
+      const res = await recruitmentAgencyAPI.getAll();
       setAgencies(res.data);
     } catch (err) {
       console.error(err);
@@ -309,65 +317,65 @@ const ExternalAgencies = () => {
     const matchesSearch = agency.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
+    agency.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
-      selectedStatus === "all" || agency.status === selectedStatus;
+      selectedStatus === "all" ||
+      (selectedStatus === "active" ? agency.is_active : !agency.is_active);
     return matchesSearch && matchesStatus;
   });
 
-
   // ✅ date formatter helper
   const formatDate = (dateString) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
+    if (!dateString) return "";
+    const date = new Date(dateString);
 
-  const options = {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
+    const options = {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    };
+
+    return date.toLocaleDateString("en-GB", options).replace(/ /g, "/");
   };
-
-  return date.toLocaleDateString("en-GB", options).replace(/ /g, "/");
-};
-
 
   // ✅ date + time formatter helper
-const formatDateTime = (dateString) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
 
-  const options = {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
+    const options = {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    };
+
+    // Example: "01 Sept 2025, 7:14:04 pm"
+    return date.toLocaleString("en-GB", options).replace(/ /g, " ");
   };
-
-  // Example: "01 Sept 2025, 7:14:04 pm"
-  return date.toLocaleString("en-GB", options).replace(/ /g, " ");
-};
-
 
   // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingId) {
-        await externalAPI.update(editingId, form);
+        await recruitmentAgencyAPI.update(editingId, form);
         setSuccessModal({
           show: true,
           message: "Agency updated successfully!",
         });
       } else {
-        await externalAPI.create(form);
+        await recruitmentAgencyAPI.create(form);
         setSuccessModal({
           show: true,
           message: "Agency created successfully!",
         });
       }
-      setForm({ name: "", status: "active" });
+      // setForm({ name: "", status: "active" });
+      resetForm();
       setEditingId(null);
       setShowForm(false);
       fetchAgencies();
@@ -377,8 +385,22 @@ const formatDateTime = (dateString) => {
     }
   };
 
+  // const handleEdit = (agency) => {
+  //   setForm({ agency });
+  //   setEditingId(agency.id);
+  //   setShowForm(true);
+  // };
+
   const handleEdit = (agency) => {
-    setForm({ name: agency.name, status: agency.status });
+    setForm({
+      id: agency.id,
+      name: agency.name || "",
+      contact_person: agency.contact_person || "",
+      email: agency.email || "",
+      phone: agency.phone || "",
+      website: agency.website || "",
+      is_active: agency.is_active,
+    });
     setEditingId(agency.id);
     setShowForm(true);
   };
@@ -386,7 +408,7 @@ const formatDateTime = (dateString) => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this agency?")) return;
     try {
-      await externalAPI.delete(id);
+      await recruitmentAgencyAPI.delete(id);
       fetchAgencies();
       setSuccessModal({ show: true, message: "Agency deleted successfully!" });
     } catch (err) {
@@ -395,15 +417,38 @@ const formatDateTime = (dateString) => {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "inactive":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+  // ✅ handle true/false from DB
+  const getStatusColor = (isActive) => {
+    if (isActive === true) {
+      return "bg-green-100 text-green-800"; // Active
+    } else if (isActive === false) {
+      return "bg-red-100 text-red-800"; // Inactive
     }
+    return "bg-gray-100 text-gray-800"; // Default / null
+  };
+
+  // const resetForm = () => {
+  //   setForm({
+  //     name: "",
+  //     contact_person: "",
+  //     email: "",
+  //     phone: "",
+  //     website: "",
+  //     is_active: true,
+  //   });
+  //   setEditingId(null);
+  //   setShowForm(false);
+  // };
+
+  const resetForm = () => {
+    setForm({
+      name: "",
+      contact_person: "",
+      email: "",
+      phone: "",
+      website: "",
+      is_active: true,
+    });
   };
 
   return (
@@ -491,11 +536,10 @@ const formatDateTime = (dateString) => {
                     </span> */}
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                        agency.status
+                        agency.is_active
                       )}`}
                     >
-                      {agency.status.charAt(0).toUpperCase() +
-                        agency.status.slice(1)}
+                      {agency.is_active ? "Active" : "Inactive"}
                     </span>
                   </td>
                   {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -503,7 +547,7 @@ const formatDateTime = (dateString) => {
                   </td> */}
                   {/* ✅ formatted date */}
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatDate(agency.created_date)}
+                    {formatDate(agency.created_at)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
                     <button
@@ -545,36 +589,87 @@ const formatDateTime = (dateString) => {
       {/* Modal Form */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl p-6">
             <h2 className="text-xl font-semibold mb-4">
               {editingId ? "Edit Agency" : "Add Agency"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <input
-                type="text"
-                name="name"
-                placeholder="Agency Name"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="input-field w-full"
-                required
-              />
-              <select
-                name="status"
-                value={form.status}
-                onChange={(e) => setForm({ ...form, status: e.target.value })}
-                className="input-field w-full"
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
+              {/* First row */}
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Agency Name"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="input-field w-full"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Contact Person"
+                  value={form.contact_person}
+                  onChange={(e) =>
+                    setForm({ ...form, contact_person: e.target.value })
+                  }
+                  className="input-field w-full"
+                />
+              </div>
+
+              {/* Second row */}
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="input-field w-full"
+                />
+                <input
+                  type="text"
+                  placeholder="Phone"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  className="input-field w-full"
+                />
+              </div>
+
+              {/* Third row */}
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  placeholder="Website"
+                  value={form.website}
+                  onChange={(e) =>
+                    setForm({ ...form, website: e.target.value })
+                  }
+                  className="input-field w-full"
+                />
+                <select
+                  name="is_active"
+                  value={form.is_active ? "active" : "inactive"} // convert boolean -> string for UI
+                  onChange={
+                    (e) =>
+                      setForm({
+                        ...form,
+                        is_active: e.target.value === "active",
+                      }) // convert string -> boolean
+                  }
+                  className="input-field w-full"
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+
+              {/* Buttons */}
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => {
                     setShowForm(false);
                     setEditingId(null);
-                    setForm({ name: "", status: "active" });
+                    resetForm();
                   }}
                   className="px-4 py-2 border rounded-md"
                 >
@@ -592,33 +687,52 @@ const formatDateTime = (dateString) => {
       {/* View Modal */}
       {viewAgency && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md p-6">
-            {/* Close button (top-right inside modal) */}
-            <button
-              onClick={() => setViewAgency(null)}
-              className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
-            >
-              ✕
-            </button>
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl space-y-4 max-h-[70vh] p-6 overflow-y-auto">
+            <div className="flex justify-between items-center border-b pb-2">
+              <h2 className="text-xl font-semibold mb-4">Agency Details</h2>
 
-            <h2 className="text-xl font-semibold mb-4">Agency Details</h2>
+              {/* Close button (top-right inside modal) */}
+              <button
+                onClick={() => setViewAgency(null)}
+                className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
+              >
+                ✕
+              </button>
+            </div>
+
             <p>
               <strong>ID:</strong> {viewAgency.id}
             </p>
             <p>
               <strong>Name:</strong> {viewAgency.name}
             </p>
+            <p>
+              <strong>Contact Person:</strong>{" "}
+              {viewAgency.contact_person || "-"}
+            </p>
+            <p>
+              <strong>Email:</strong> {viewAgency.email || "-"}
+            </p>
+            <p>
+              <strong>Phone:</strong> {viewAgency.phone || "-"}
+            </p>
+            <p>
+              <strong>Website:</strong> {viewAgency.website || "-"}
+            </p>
             {/* <p>
               <strong>Status:</strong> {viewAgency.status}
             </p> */}
             <p>
               <strong>Status:</strong>{" "}
-              {viewAgency.status.charAt(0).toUpperCase() +
-                viewAgency.status.slice(1)}
+              {viewAgency.is_active
+                ? "Active"
+                : "Inactive".charAt(0).toUpperCase() + viewAgency.is_active
+                ? "Active"
+                : "Inactive".slice(1)}
             </p>
             <p>
               <strong>Created At:</strong>{" "}
-               {formatDateTime(viewAgency.created_date)}
+              {formatDateTime(viewAgency.created_at)}
               {/* {new Date(viewAgency.created_date).toLocaleString()} */}
             </p>
 
@@ -654,4 +768,4 @@ const formatDateTime = (dateString) => {
   );
 };
 
-export default ExternalAgencies;
+export default RecruitmentAgencies;

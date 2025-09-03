@@ -10,7 +10,7 @@ import Applications from "./pages/Applications";
 import Login from "./pages/Login";
 import JobPoolCandidatesPage from "./pages/JobPoolCandidatesPage";
 import Careers from "./pages/Careers";
-import ExternalAgencies from "./pages/ExternalAgencies";
+import RecruitmentAgencies from "./pages/RecruitmentAgencies";
 import CandidateProfilePage from "./pages/CandidateProfilePage";
 import RecruitmentWorkflow from "./pages/RecruitmentWorkflow";
 
@@ -38,7 +38,7 @@ function App() {
               path="/jobs/:jobId/pool-candidates"
               element={<JobPoolCandidatesPage />}
             />
-            <Route path="external-agencies" element={<ExternalAgencies />} />{" "}
+            <Route path="recruitment-agencies" element={<RecruitmentAgencies />} />{" "}
             {/* <-- Added */}
             <Route
               path="candidate-profile"

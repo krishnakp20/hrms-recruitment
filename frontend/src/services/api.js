@@ -112,14 +112,24 @@ export const dashboardAPI = {
 }
 
 
-// External Agencies API
-export const externalAPI = {
-  getAll: (params) => api.get('/external-agencies', { params }),
-  getById: (id) => api.get(`/external-agencies/${id}`),
-  create: (data) => api.post('/external-agencies', data),
-  update: (id, data) => api.put(`/external-agencies/${id}`, data),
-  delete: (id) => api.delete(`/external-agencies/${id}`),
-}
+// // External Agencies API
+// export const externalAPI = {
+//   getAll: (params) => api.get('/external-agencies', { params }),
+//   getById: (id) => api.get(`/external-agencies/${id}`),
+//   create: (data) => api.post('/external-agencies', data),
+//   update: (id, data) => api.put(`/external-agencies/${id}`, data),
+//   delete: (id) => api.delete(`/external-agencies/${id}`),
+// }
+
+// Recruitment Agencies API
+export const recruitmentAgencyAPI = {
+  getAll: (params) => api.get("/recruitment-agencies", { params }),
+  getById: (id) => api.get(`/recruitment-agencies/${id}`),
+  create: (data) => api.post("/recruitment-agencies", data),
+  update: (id, data) => api.put(`/recruitment-agencies/${id}`, data),
+  delete: (id) => api.delete(`/recruitment-agencies/${id}`),
+};
+
 
 // Candidate Profile Fields API
 export const candidateProfileAPI = {

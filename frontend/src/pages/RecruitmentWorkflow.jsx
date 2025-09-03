@@ -711,6 +711,15 @@ const RecruitmentWorkflowTemplates = () => {
     return date.toLocaleDateString("en-GB", options).replace(/ /g, "/");
   };
 
+  const getStatusColor = (isActive) => {
+    if (isActive === true) {
+      return "bg-green-100 text-green-800"; // Active
+    } else if (isActive === false) {
+      return "bg-red-100 text-red-800"; // Inactive
+    }
+    return "bg-gray-100 text-gray-800"; // Default / null
+  };
+
   // ✅ date + time formatter helper
   const formatDateTime = (dateString) => {
     if (!dateString) return "";
@@ -806,17 +815,27 @@ const RecruitmentWorkflowTemplates = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredTemplates.map((t) => (
                 <tr key={t.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">{t.name}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {t.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
                     {Array.isArray(t.steps) ? t.steps.length : 0}
                   </td>
 
-                  <td className="px-6 py-4">
-                    {t.is_active ? "Active" : "Inactive"}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                        t.is_active
+                      )}`}
+                    >
+                      {t.is_active ? "Active" : "Inactive"}
+                    </span>
                   </td>
 
-                  <td className="px-6 py-4">{formatDate(t.created_at)}</td>
-                  <td className="px-6 py-4 text-right space-x-3">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {formatDate(t.created_at)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
                     <button
                       className="text-blue-600 hover:text-blue-900"
                       onClick={() => setViewTemplate(t)}
@@ -852,8 +871,8 @@ const RecruitmentWorkflowTemplates = () => {
 
       {/* Modal Form */}
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-          <div className="relative bg-white rounded-lg shadow-lg w-full max-w-2xl p-6">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="relative bg-white rounded-lg shadow-lg w-full max-w-4xl max-h-[70vh] p-6 overflow-y-auto">
             <button
               onClick={resetForm}
               className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
@@ -988,7 +1007,7 @@ const RecruitmentWorkflowTemplates = () => {
                         setStageInput({ name: "", description: "" });
                       }
                     }}
-                    className="bg-orange-500 text-white px-4 py-2 rounded"
+                    className="btn-primary text-white px-4 py-2 rounded"
                   >
                     {editingIndex !== null ? "Update" : "Add"}
                   </button>
@@ -1021,7 +1040,7 @@ const RecruitmentWorkflowTemplates = () => {
                 </button>
                 <button
                   type="submit"
-                  className="bg-orange-500 text-white px-4 py-2 rounded"
+                  className="btn-primary text-white px-4 py-2 rounded"
                 >
                   Save
                 </button>
@@ -1033,17 +1052,19 @@ const RecruitmentWorkflowTemplates = () => {
 
       {/* View Modal */}
       {viewTemplate && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-          <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md p-6">
-            {/* Close Button */}
-            <button
-              onClick={() => setViewTemplate(null)}
-              className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
-            >
-              ✕
-            </button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl space-y-4 max-h-[70vh] p-6 overflow-y-auto">
+            <div className="flex justify-between items-center border-b pb-2">
+              <h2 className="text-xl font-semibold mb-4">Template Details</h2>
 
-            <h2 className="text-xl font-semibold mb-4">Template Details</h2>
+              {/* Close Button */}
+              <button
+                onClick={() => setViewTemplate(null)}
+                className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
+              >
+                ✕
+              </button>
+            </div>
 
             {/* Template Info */}
             <div className="space-y-2">
@@ -1123,3 +1144,95 @@ const RecruitmentWorkflowTemplates = () => {
 };
 
 export default RecruitmentWorkflowTemplates;
+
+// {viewTemplate && (
+//   <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center overflow-auto p-4">
+//     <div className="bg-white p-6 rounded-lg shadow-xl max-w-4xl w-full space-y-4 relative">
+
+//       {/* Header */}
+//       <div className="flex justify-between items-center border-b pb-2">
+//         <h2 className="text-2xl font-bold flex items-center gap-2 text-orange-500">
+//           <svg
+//             xmlns="http://www.w3.org/2000/svg"
+//             width="24"
+//             height="24"
+//             viewBox="0 0 24 24"
+//             fill="none"
+//             stroke="currentColor"
+//             strokeWidth="2"
+//             strokeLinecap="round"
+//             strokeLinejoin="round"
+//             className="h-6 w-6"
+//           >
+//             <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
+//             <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+//           </svg>
+//           Template Details
+//         </h2>
+//         <button
+//           onClick={() => setViewTemplate(null)}
+//           className="text-gray-500 hover:text-gray-700 text-xl"
+//         >
+//           ✕
+//         </button>
+//       </div>
+
+//       {/* Template Info */}
+//       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm text-gray-800">
+//         <div>
+//           <strong>ID:</strong> {viewTemplate.id}
+//         </div>
+//         <div>
+//           <strong>Name:</strong>{" "}
+//           {viewTemplate.name || viewTemplate.template_name}
+//         </div>
+//         <div>
+//           <strong>Status:</strong>{" "}
+//           {viewTemplate.is_active ? "Active" : "Inactive"}
+//         </div>
+//         <div>
+//           <strong>Created At:</strong>{" "}
+//           {viewTemplate.created_at
+//             ? formatDateTime(viewTemplate.created_at)
+//             : "N/A"}
+//         </div>
+//       </div>
+
+//       {/* Stages Section */}
+//       <div className="pt-4">
+//         <h3 className="text-lg font-semibold border-b pb-1 mb-2">Stages</h3>
+//         {Array.isArray(viewTemplate.steps) &&
+//         viewTemplate.steps.length > 0 ? (
+//           <div className="space-y-3">
+//             {viewTemplate.steps.map((s, i) => (
+//               <div
+//                 key={i}
+//                 className="border rounded-md p-3 bg-gray-50 shadow-sm"
+//               >
+//                 <p>
+//                   <strong>Stage {i + 1} Name:</strong> {s.name}
+//                 </p>
+//                 <p>
+//                   <strong>Description:</strong>{" "}
+//                   {s.description || "-"}
+//                 </p>
+//               </div>
+//             ))}
+//           </div>
+//         ) : (
+//           <p className="mt-1 text-gray-600">No stages added</p>
+//         )}
+//       </div>
+
+//       {/* Footer */}
+//       <div className="flex justify-end pt-4 border-t">
+//         <button
+//           onClick={() => setViewTemplate(null)}
+//           className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+//         >
+//           Close
+//         </button>
+//       </div>
+//     </div>
+//   </div>
+// )}
