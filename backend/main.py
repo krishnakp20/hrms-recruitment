@@ -1,10 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-<<<<<<< Updated upstream
-from app.routers import auth, employees, candidates, jobs, applications, dashboard, recruitment_agencies, candidate_profile, recruitment_workflow
-=======
-from app.routers import auth, employees, candidates, jobs, applications, dashboard, interviews
->>>>>>> Stashed changes
+from app.routers import auth, employees, candidates, jobs, applications, dashboard, recruitment_agencies, candidate_profile, recruitment_workflow, interviews
 from app.core.config import ALLOWED_ORIGINS, HOST, PORT, DEBUG
 from fastapi.staticfiles import StaticFiles
 import os
@@ -42,16 +38,13 @@ app.include_router(candidates.router, prefix="/candidates", tags=["Candidates"])
 app.include_router(jobs.router, prefix="/jobs", tags=["Jobs"])
 app.include_router(applications.router, prefix="/applications", tags=["Applications"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
-<<<<<<< Updated upstream
 app.include_router(recruitment_agencies.router)
 app.include_router(candidate_profile.router)
 app.include_router(recruitment_workflow.router)
 # app.include_router(external.router, prefix="/external-agencies", tags=["External Agencies"])
 
 # app.include_router(user.router, prefix="/users", tags=["Users"])
-=======
 app.include_router(interviews.router, prefix="/interviews", tags=["Interviews"])
->>>>>>> Stashed changes
 
 @app.get("/")
 async def root():

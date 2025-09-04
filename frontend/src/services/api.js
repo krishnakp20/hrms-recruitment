@@ -129,7 +129,6 @@ export const dashboardAPI = {
 }
 
 
-<<<<<<< Updated upstream
 // // External Agencies API
 // export const externalAPI = {
 //   getAll: (params) => api.get('/external-agencies', { params }),
@@ -166,7 +165,7 @@ export const workflowTemplateAPI = {
   update: (id, data) => api.put(`/workflow-templates/${id}`, data),
   delete: (id) => api.delete(`/workflow-templates/${id}`),
 };
-=======
+
 export const interviewsAPI = {
   getApplication: (applicationId) =>
     api.get(`/interviews/${applicationId}`),
@@ -184,8 +183,5 @@ export const interviewsAPI = {
 
   createQuestion: (jobId, data) => api.post(`/interviews/${jobId}/questions`, data),
 };
-
-
->>>>>>> Stashed changes
 
 export default api 
