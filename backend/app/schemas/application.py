@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from app.schemas.candidate import Candidate
+from app.schemas.job import Job
 from app.models.application import ApplicationStatus
 
 class ApplicationBase(BaseModel):
@@ -30,7 +32,12 @@ class ApplicationUpdate(BaseModel):
 
 class Application(ApplicationBase):
     id: int
-    applied_at: datetime
+    status: ApplicationStatus
+    candidate: Candidate
+    job: Job
+    job_id: Optional[int] = None
+    candidate_id: Optional[int] = None
+    applied_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
     class Config:

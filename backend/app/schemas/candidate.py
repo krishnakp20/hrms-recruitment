@@ -56,8 +56,13 @@ class CandidateUpdate(BaseModel):
 
 class Candidate(CandidateBase):
     id: int
+    first_name: str
+    last_name: str
+    email: str
+    experience_years: int
+    phone: Optional[str] = None
     created_by: Optional[int] = None
-    created_at: datetime
+    created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
     class Config:

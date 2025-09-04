@@ -56,6 +56,7 @@ class Candidate(Base):
     created_by_user = relationship("User")
     applications = relationship("Application", back_populates="candidate")
     whatsapp_communications = relationship("WhatsAppCommunication", back_populates="candidate")
+    offer_letter = relationship("OfferLetter", back_populates="candidate")
 
 class WhatsAppCommunication(Base):
     __tablename__ = "whatsapp_communications"
@@ -73,4 +74,24 @@ class WhatsAppCommunication(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
-    candidate = relationship("Candidate", back_populates="whatsapp_communications") 
+    candidate = relationship("Candidate", back_populates="whatsapp_communications")
+
+
+
+class OfferStatus(enum.Enum):
+    DRAFT = "DRAFT"
+    SENT = "SENT"
+    ACCEPTED = "ACCEPTED"
+    REJECTED = "REJECTED"
+
+class OfferLetter(Base):
+    __tablename__ = "offer_letters"
+
+    id = Column(Integer, primary_key=True, index=True)
+    candidate_id = Column(Integer, ForeignKey("candidates.id"), nullable=False)
+    file_path = Column(String, nullable=False)  # PDF path
+    status = Column(Enum(OfferStatus), default=OfferStatus.DRAFT)
+    sent_at = Column(DateTime(timezone=True), server_default=func.now())
+    signed_at = Column(DateTime(timezone=True),)
+
+    candidate = relationship("Candidate", back_populates="offer_letter")

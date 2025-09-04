@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from datetime import datetime
 import json
@@ -9,14 +9,19 @@ from app.schemas.candidate import (
     Candidate, CandidateCreate, CandidateUpdate, 
     WhatsAppCommunication, WhatsAppCommunicationCreate, WhatsAppCommunicationUpdate
 )
-from app.models.candidate import Candidate as CandidateModel, WhatsAppCommunication as WhatsAppCommunicationModel
-from app.models.candidate import CandidateStatus, CandidateSource
+from app.models.candidate import Candidate as CandidateModel, WhatsAppCommunication as WhatsAppCommunicationModel, OfferLetter
+from app.models.candidate import CandidateStatus, CandidateSource, OfferStatus
 from app.models.user import UserRole
 import os, shutil
 from app.routers.resume_utils import parse_resume_spacy
 import pandas as pd
 from io import BytesIO
 from fastapi.responses import FileResponse
+import traceback
+from pathlib import Path
+from fastapi import Request
+from reportlab.lib.pagesizes import LETTER
+from reportlab.pdfgen import canvas
 
 
 router = APIRouter()
@@ -389,9 +394,6 @@ async def search_candidates(
 
 @router.post("/upload-excel/")
 async def upload_candidates_excel(file: UploadFile = File(...), db: Session = Depends(get_db)):
-    import pandas as pd
-    from io import BytesIO
-    import traceback
 
     if not file.filename.endswith(('.xlsx', '.xls')):
         raise HTTPException(status_code=400, detail="Invalid file format. Please upload an Excel file.")
@@ -473,7 +475,10 @@ async def download_template():
 
     df = pd.DataFrame(template_data)
 
-    file_path = "candidate_upload_template.xlsx"
+    output_dir = "templates"
+    os.makedirs(output_dir, exist_ok=True)
+
+    file_path = os.path.join(output_dir, "candidate_upload_template.xlsx")
     df.to_excel(file_path, index=False)
 
     return FileResponse(
@@ -481,3 +486,100 @@ async def download_template():
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         filename="candidate_upload_template.xlsx"
     )
+
+
+OFFER_DIR = Path("offers")
+OFFER_DIR.mkdir(exist_ok=True)
+
+def generate_offer_pdf(candidate):
+    """
+    Stub: generate a simple text-based PDF file for the candidate offer.
+    Replace with ReportLab or Jinja2+WeasyPrint for real templates.
+    """
+    file_name = f"offer_{candidate.id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.pdf"
+    file_path = OFFER_DIR / file_name
+
+    # ✅ Use ReportLab to create a valid PDF
+    c = canvas.Canvas(str(file_path), pagesize=LETTER)
+    c.setFont("Helvetica", 12)
+    c.drawString(100, 750, f"Offer Letter")
+    c.drawString(100, 730, f"Candidate: {candidate.first_name} {candidate.last_name}")
+    c.drawString(100, 710, f"Position: TBD")
+    c.drawString(100, 690, f"Date: {datetime.utcnow().date()}")
+    c.save()
+
+    return f"/offers/{file_name}"
+
+
+def send_offer_email(email, file_path):
+    # TODO: Replace with actual email integration
+    print(f"📧 Sending offer letter {file_path} to {email}")
+
+
+@router.post("/{candidate_id}/issue-offer")
+def issue_offer(candidate_id: int, db: Session = Depends(get_db)):
+    candidate = db.query(CandidateModel).get(candidate_id)
+    if not candidate or candidate.status != CandidateStatus.SHORTLISTED:
+        raise HTTPException(status_code=400, detail="Candidate not eligible for offer")
+
+    # Generate offer PDF (from template)
+    file_path = generate_offer_pdf(candidate)
+
+    offer = OfferLetter(
+        candidate_id=candidate.id,
+        file_path=file_path,
+        status=OfferStatus.SENT,
+        sent_at=datetime.utcnow(),
+    )
+    db.add(offer)
+
+    # TODO: integrate with e-sign provider (DocuSign/AdobeSign)
+    send_offer_email(candidate.email, file_path)
+
+    db.commit()
+    return {"message": "Offer issued", "offer_id": offer.id}
+
+
+@router.post("/offers/{offer_id}/accept")
+def accept_offer(offer_id: int, db: Session = Depends(get_db)):
+    offer = db.query(OfferLetter).get(offer_id)
+    if not offer:
+        raise HTTPException(status_code=404, detail="Offer not found")
+
+    offer.status = OfferStatus.ACCEPTED
+    offer.signed_at = datetime.utcnow()
+
+    # Update candidate status
+    candidate = db.query(CandidateModel).get(offer.candidate_id)
+    if candidate:
+        candidate.status = CandidateStatus.HIRED
+
+    db.commit()
+    return {"message": "Offer accepted. Candidate hired."}
+
+
+@router.get("/offers/all")
+def list_offers(request: Request, db: Session = Depends(get_db)):
+    base_url = str(request.base_url).rstrip("/")
+    offers = (
+        db.query(OfferLetter)
+        .options(joinedload(OfferLetter.candidate))  # fetch candidate details
+        .all()
+    )
+
+    return [
+        {
+            "id": offer.id,
+            "status": offer.status.value,
+            "file_path": f"{base_url}/offers/{Path(offer.file_path).name}",
+            "sent_at": offer.sent_at,
+            "signed_at": offer.signed_at,
+            "candidate": {
+                "id": offer.candidate.id,
+                "first_name": offer.candidate.first_name,
+                "last_name": offer.candidate.last_name,
+                "email": offer.candidate.email,
+            } if offer.candidate else None,
+        }
+        for offer in offers
+    ]
