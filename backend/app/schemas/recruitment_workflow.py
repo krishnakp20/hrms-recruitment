@@ -250,7 +250,7 @@ import json
 class RecruitmentWorkflowBase(BaseModel):
     name: str
     description: Optional[str] = None
-    steps: List[dict]  # 👈 Each stage will be { "name": "Application", "description": "..." }
+    steps: List[dict]  
     is_active: Optional[bool] = True
 
     # convert DB string → list
