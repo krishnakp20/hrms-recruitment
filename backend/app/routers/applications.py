@@ -4,6 +4,8 @@ from typing import List
 from app.core.database import get_db
 from app.schemas.application import Application, ApplicationCreate, ApplicationUpdate
 from app.models.application import Application as ApplicationModel
+from app.core.security import get_current_user
+from app.models.user import UserRole
 
 router = APIRouter()
 
@@ -48,4 +50,4 @@ async def delete_application(application_id: int, db: Session = Depends(get_db))
     
     db.delete(db_application)
     db.commit()
-    return {"message": "Application deleted successfully"} 
+    return {"message": "Application deleted successfully"}

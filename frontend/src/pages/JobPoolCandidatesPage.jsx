@@ -8,6 +8,7 @@ const JobPoolCandidatesPage = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [candidates, setCandidates] = useState([])
   const [loading, setLoading] = useState(true)
+  const [message, setMessage] = useState('')
 
   const fetchPoolCandidates = async () => {
     setLoading(true)
@@ -42,11 +43,33 @@ const JobPoolCandidatesPage = () => {
     }
   }
 
+  const handleShortlist = async (candidateId) => {
+  try {
+    await jobsAPI.shortlistCandidate(jobId, candidateId)
+    setMessage('✅ Candidate shortlisted successfully!')
+    // refresh candidates
+    fetchPoolCandidates()
+    setTimeout(() => setMessage(''), 3000)
+  } catch (err) {
+    console.error("Failed to shortlist candidate", err)
+    setMessage('❌ Failed to shortlist candidate.')
+    setTimeout(() => setMessage(''), 3000)
+  }
+}
+
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Pool Candidates</h1>
       </div>
+
+      {/* ✅ Success/Error Message */}
+      {message && (
+        <div className="p-3 rounded-md bg-green-100 text-green-800 text-sm font-medium">
+          {message}
+        </div>
+      )}
 
       {/* Search */}
       <div className="card">
@@ -74,6 +97,7 @@ const JobPoolCandidatesPage = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Experience</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skills</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ACTION</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -98,6 +122,16 @@ const JobPoolCandidatesPage = () => {
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(candidate.status)}`}>
                       {candidate.status || 'N/A'}
                     </span>
+                  </td>
+                  <td className="px-6 py-4">
+                      {candidate.status !== 'Shortlisted' && (
+                        <button
+                          onClick={() => handleShortlist(candidate.id)}
+                          className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                        >
+                          Shortlist
+                        </button>
+                      )}
                   </td>
                 </tr>
               ))

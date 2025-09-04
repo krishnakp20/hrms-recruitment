@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, date
 from app.models.job import JobStatus, JobType, LocationType
-
+from app.models.interview import RoundType
 
 
 class DepartmentBase(BaseModel):
@@ -86,12 +86,15 @@ class JobUpdate(BaseModel):
 
 class Job(JobBase):
     id: int
+    position_title: str
+    position_code: str
     pool_candidate_count: int = 0
     department: Optional[Department] = None
+    employment_type: Optional[str] = None
     created_by: Optional[int] = None
     approved_by: Optional[int] = None
     approved_at: Optional[datetime] = None
-    created_at: datetime
+    created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
     class Config:
@@ -172,4 +175,35 @@ class JobPostingChannel(JobPostingChannelBase):
     updated_at: Optional[datetime] = None
 
     class Config:
-        from_attributes = True 
+        from_attributes = True
+
+
+
+class QuestionBankCreate(BaseModel):
+    round_type: RoundType
+    text: str
+    competency: str | None = None
+    expected_points: list[str] = []
+    default_weight: float = 1.0
+
+class QuestionBankRead(QuestionBankCreate):
+    id: int
+    active: bool
+    class Config:
+        orm_mode = True
+
+class JobQuestionAttachItem(BaseModel):
+    bank_question_id: int
+    weight: float | None = None
+
+class JobQuestionRead(BaseModel):
+    id: int  # job_question id
+    bank_question_id: int
+    round_type: RoundType
+    text: str
+    competency: str | None
+    expected_points: list[str]
+    weight: float
+    display_order: int
+    class Config:
+        orm_mode = True

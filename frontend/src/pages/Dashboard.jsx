@@ -178,6 +178,16 @@ const Dashboard = () => {
             <Link to="/candidates" className="w-full btn-secondary block text-center">
               Add Candidate
             </Link>
+            <Link to="/applications" className="w-full btn-secondary block text-center">
+              Applications
+            </Link>
+
+            <Link to="/bank-questions/create" className="w-full btn-secondary block text-center">
+              Add Bank Question
+            </Link>
+            <Link to="/offers" className="w-full btn-secondary block text-center">
+              Candidate Offers
+            </Link>
 {/*             <Link to="/" className="w-full btn-secondary block text-center"> */}
 {/*               Schedule Interview */}
 {/*             </Link> */}

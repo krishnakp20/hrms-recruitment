@@ -7,11 +7,20 @@ import {
   FileText,
   LogOut,
   Menu,
+<<<<<<< Updated upstream
   X,
   Settings,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
+=======
+  HelpCircle,
+  FileSignature,
+  X
+} from 'lucide-react'
+import { useState } from 'react'
+import { useAuth } from '../contexts/AuthContext'
+>>>>>>> Stashed changes
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -19,6 +28,7 @@ const Layout = () => {
   const { user, logout } = useAuth();
 
   const navigation = [
+<<<<<<< Updated upstream
     { name: "Dashboard", href: "/", icon: Home },
     { name: "Jobs", href: "/jobs", icon: Briefcase },
     //     { name: 'Employees', href: '/employees', icon: Users },
@@ -31,6 +41,18 @@ const Layout = () => {
       icon: Settings,
     },
   ];
+=======
+    { name: 'Dashboard', href: '/', icon: Home },
+    { name: 'Jobs', href: '/jobs', icon: Briefcase },
+//     { name: 'Employees', href: '/employees', icon: Users },
+    { name: 'Candidates', href: '/candidates', icon: UserPlus },
+    { name: 'Applications', href: '/applications', icon: FileText },
+
+    { name: 'Create Bank Question', href: '/bank-questions/create', icon: HelpCircle },
+    { name: 'Candidate Offers', href: '/offers', icon: FileSignature },
+    { name: 'Internal Careers', href: '/careers', icon: Users },
+  ]
+>>>>>>> Stashed changes
 
   const isActive = (href) => {
     if (href === "/") {

@@ -1,8 +1,11 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Enum, Boolean, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, Enum, Boolean, Date, ForeignKey, Float, func
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import enum
 from app.core.database import Base
+from app.models.interview import RoundType
+from sqlalchemy.dialects.mysql import JSON
+
 
 class JobStatus(str, enum.Enum):
     DRAFT = "Draft"
@@ -121,4 +124,28 @@ class JobPostingChannel(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
-    job = relationship("Job", back_populates="posting_channels") 
+    job = relationship("Job", back_populates="posting_channels")
+
+
+
+class QuestionBank(Base):
+    __tablename__ = "question_bank"
+    id = Column(Integer, primary_key=True)
+    round_type = Column(Enum(RoundType), nullable=False)   # HR | Manager | Executive
+    text = Column(Text, nullable=False)
+    competency = Column(String(255))
+    expected_points = Column(JSON, default=[])
+    default_weight = Column(Float, default=1.0)
+    active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class JobQuestion(Base):
+    __tablename__ = "job_questions"
+    id = Column(Integer, primary_key=True)
+    job_id = Column(Integer, ForeignKey("jobs.id"), nullable=False)
+    bank_question_id = Column(Integer, ForeignKey("question_bank.id"), nullable=False)
+    weight = Column(Float, nullable=False, default=1.0)    # override allowed
+    display_order = Column(Integer, default=0)
+
+    job = relationship("Job", backref="job_questions")
+    bank_question = relationship("QuestionBank")

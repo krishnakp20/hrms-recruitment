@@ -3,8 +3,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 # Database - Use MySQL for production, SQLite for development
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./hrms.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "mysql+pymysql://root:Aman%408934@localhost:3306/hrms_db")
 
 # JWT
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")

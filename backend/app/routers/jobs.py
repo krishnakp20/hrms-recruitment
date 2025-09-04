@@ -4,19 +4,19 @@ from typing import List, Optional
 from datetime import datetime
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.schemas.job import (
-    Job, JobCreate, JobUpdate, Department, DepartmentCreate, DepartmentUpdate,
-    RecruitmentWorkflow, RecruitmentWorkflowCreate, RecruitmentWorkflowUpdate,
-    RecruitmentAgency, RecruitmentAgencyCreate, RecruitmentAgencyUpdate,
-    JobPostingChannel, JobPostingChannelCreate, JobPostingChannelUpdate
-)
+from app.schemas.job import *
 from app.schemas.candidate import Candidate
+from app.schemas.interviews import QuestionBase
 from app.models.job import Job as JobModel, Department as DepartmentModel, RecruitmentWorkflow as RecruitmentWorkflowModel
 from app.models.job import RecruitmentAgency as RecruitmentAgencyModel, JobPostingChannel as JobPostingChannelModel
-from app.models.job import JobStatus, LocationType
+from app.models.job import JobStatus, LocationType, QuestionBank, JobQuestion
 from app.models.user import UserRole
 from app.models.candidate import Candidate as CandidateModel
+from app.models.application import Application as ApplicationModel, ApplicationStatus
+from app.models.interview import Question as QuestionModel
 from app.routers.match_pool_utils import match_pool_candidates_to_job, extract_skills, parse_experience_range
+from app.models.interview import RoundType
+from sqlalchemy import func, or_
 
 
 router = APIRouter()
@@ -475,3 +475,178 @@ def list_published_jobs(db: Session = Depends(get_db)):
     jobs = (db.query(JobModel).filter(JobModel.is_published == True, JobModel.status == "Approved").all())
 
     return jobs
+
+
+@router.post("/{job_id}/candidates/{candidate_id}/shortlist")
+def shortlist_candidate(job_id: int, candidate_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+
+    if current_user.role not in [UserRole.HR_SPOC, UserRole.ADMIN]:
+        raise HTTPException(status_code=403, detail="Only HR SPOC and admins can shortlist candidates")
+
+    application = (
+        db.query(ApplicationModel)
+        .filter(ApplicationModel.job_id == job_id, ApplicationModel.candidate_id == candidate_id)
+        .first()
+    )
+    if not application:
+        application = ApplicationModel(
+            candidate_id=candidate_id,
+            job_id=job_id,
+            status=ApplicationStatus.SHORTLISTED
+        )
+        db.add(application)
+    else:
+        application.status = ApplicationStatus.SHORTLISTED
+
+    db.commit()
+    db.refresh(application)
+    return {"message": "Candidate shortlisted", "application": application}
+
+
+@router.get("/{job_id}/questions", response_model=List[QuestionBase])
+def get_job_questions(job_id: int, round_type: Optional[RoundType] = None, db: Session = Depends(get_db)):
+    job = db.query(JobModel).filter(JobModel.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    query = db.query(QuestionModel).filter(QuestionModel.job_id == job.id)
+    if round_type:
+        query = query.filter(QuestionModel.round_type == round_type)
+
+    return query.all()
+
+
+
+@router.post("/questions/bank", response_model=QuestionBankRead)
+def create_bank_question(payload: QuestionBankCreate, db: Session = Depends(get_db)):
+    qb = QuestionBank(**payload.dict())
+    db.add(qb); db.commit(); db.refresh(qb)
+    return qb
+
+@router.get("/questions/bank", response_model=List[QuestionBankRead])
+def list_bank_questions(
+    round_type: RoundType | None = None,
+    search: str | None = None,
+    db: Session = Depends(get_db)
+):
+    q = db.query(QuestionBank).filter(QuestionBank.active == True)
+    if round_type:
+        q = q.filter(QuestionBank.round_type == round_type)
+    if search:
+        like = f"%{search}%"
+        q = q.filter(or_(QuestionBank.text.ilike(like), QuestionBank.competency.ilike(like)))
+    return q.order_by(QuestionBank.id.desc()).all()
+
+
+@router.put("/questions/bank/{question_id}", response_model=QuestionBankRead)
+def update_bank_question(
+    question_id: int,
+    payload: QuestionBankCreate,
+    db: Session = Depends(get_db)
+):
+    question = db.query(QuestionBank).filter(QuestionBank.id == question_id).first()
+    if not question:
+        raise HTTPException(status_code=404, detail="Question not found")
+
+    for key, value in payload.dict(exclude_unset=True).items():
+        setattr(question, key, value)
+
+    db.commit()
+    db.refresh(question)
+    return question
+
+
+
+@router.delete("/questions/bank/{question_id}")
+def delete_bank_question(
+    question_id: int,
+    db: Session = Depends(get_db)
+):
+    question = db.query(QuestionBank).filter(QuestionBank.id == question_id).first()
+    if not question:
+        raise HTTPException(status_code=404, detail="Question not found")
+
+    db.delete(question)
+    db.commit()
+    return {"message": "Question deleted successfully"}
+
+
+@router.post("/{job_id}/questions/attach", response_model=List[JobQuestionRead])
+def attach_bank_questions(
+    job_id: int,
+    items: List[JobQuestionAttachItem],
+    db: Session = Depends(get_db)
+):
+    # validate job
+    job = db.query(JobModel).get(job_id)
+    if not job: raise HTTPException(404, "Job not found")
+
+    created: list[JobQuestion] = []
+    # find current max display_order
+    current_max = db.query(func.coalesce(func.max(JobQuestion.display_order), 0)).filter(
+        JobQuestion.job_id == job_id
+    ).scalar()
+
+    for idx, item in enumerate(items):
+        qb = db.query(QuestionBank).get(item.bank_question_id)
+        if not qb:
+            raise HTTPException(404, f"Bank question {item.bank_question_id} not found")
+
+        jq = JobQuestion(
+            job_id=job_id,
+            bank_question_id=qb.id,
+            weight=item.weight if item.weight is not None else qb.default_weight,
+            display_order=current_max + idx + 1,
+        )
+        db.add(jq); created.append(jq)
+
+    db.commit()
+    # return a denormalized read model
+    out = []
+    for jq in created:
+        db.refresh(jq)
+        qb = jq.bank_question
+        out.append(JobQuestionRead(
+            id=jq.id,
+            bank_question_id=qb.id,
+            round_type=qb.round_type,
+            text=qb.text,
+            competency=qb.competency,
+            expected_points=qb.expected_points or [],
+            weight=jq.weight,
+            display_order=jq.display_order
+        ))
+    return out
+
+@router.get("/{job_id}/bank_questions", response_model=List[JobQuestionRead])
+def get_job_questions(
+    job_id: int,
+    round_type: RoundType | None = None,
+    db: Session = Depends(get_db)
+):
+    q = db.query(JobQuestion).join(QuestionBank).filter(JobQuestion.job_id == job_id)
+    if round_type:
+        q = q.filter(QuestionBank.round_type == round_type)
+
+    rows = q.order_by(JobQuestion.display_order.asc()).all()
+    return [
+        JobQuestionRead(
+            id=r.id,
+            bank_question_id=r.bank_question_id,
+            round_type=r.bank_question.round_type,
+            text=r.bank_question.text,
+            competency=r.bank_question.competency,
+            expected_points=r.bank_question.expected_points or [],
+            weight=r.weight,
+            display_order=r.display_order
+        )
+        for r in rows
+    ]
+
+@router.delete("/{job_id}/questions/{job_question_id}")
+def detach_job_question(job_id: int, job_question_id: int, db: Session = Depends(get_db)):
+    jq = db.query(JobQuestion).filter(JobQuestion.id == job_question_id,
+                                      JobQuestion.job_id == job_id).first()
+    if not jq: raise HTTPException(404, "Job question not found")
+    db.delete(jq); db.commit()
+    return {"ok": True}

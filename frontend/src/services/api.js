@@ -66,6 +66,7 @@ export const employeesAPI = {
 
 // Candidates API
 export const candidatesAPI = {
+  getAllOffers: () => api.get(`/candidates/offers/all`),
   getAll: (params) => api.get('/candidates', { params }),
   getById: (id) => api.get(`/candidates/${id}`),
   create: (data) => api.post('/candidates', data),
@@ -77,6 +78,8 @@ export const candidatesAPI = {
           'Content-Type': 'multipart/form-data',
         },
       }),
+  issueOffer: (id) => api.post(`/candidates/${id}/issue-offer`),
+
 }
 
 // Jobs API
@@ -94,6 +97,20 @@ export const jobsAPI = {
   getAgencies: (params) => api.get('/jobs/agencies/', { params }),
   publishJob: (id) => api.post(`/jobs/${id}/publish`),
   getPublished: () => api.get("/jobs/public/careers"),
+  shortlistCandidate: (jobId, candidateId) =>
+  api.post(`/jobs/${jobId}/candidates/${candidateId}/shortlist`),
+  getQuestionsByJob: (jobId, roundType) => api.get(`/jobs/${jobId}/questions`, {
+    params: { round_type: roundType },
+  }),
+
+  getBankQuestions: (params) => api.get('/jobs/questions/bank', { params }),
+  deleteBankQuestion: (id) => api.delete(`/jobs/questions/bank/${id}`),
+  updateBankQuestion: (id, data) => api.put(`/jobs/questions/bank/${id}`, data),
+  attachQuestionsToJob: (jobId, items) => api.post(`/jobs/${jobId}/questions/attach`, items),
+  detachJobQuestion: (jobId, jobQuestionId) => api.delete(`/jobs/${jobId}/questions/${jobQuestionId}`),
+  getQuestionsBankByJob: (jobId, roundType) =>
+    api.get(`/jobs/${jobId}/bank_questions`, { params: { round_type: roundType } }),
+  createBankQuestion: (data) => api.post('/jobs/questions/bank', data),
 }
 
 // Applications API
@@ -112,6 +129,7 @@ export const dashboardAPI = {
 }
 
 
+<<<<<<< Updated upstream
 // // External Agencies API
 // export const externalAPI = {
 //   getAll: (params) => api.get('/external-agencies', { params }),
@@ -148,5 +166,26 @@ export const workflowTemplateAPI = {
   update: (id, data) => api.put(`/workflow-templates/${id}`, data),
   delete: (id) => api.delete(`/workflow-templates/${id}`),
 };
+=======
+export const interviewsAPI = {
+  getApplication: (applicationId) =>
+    api.get(`/interviews/${applicationId}`),
+
+  startInterview: (applicationId) =>
+    api.post(`/interviews/${applicationId}/start_interview`),
+
+  startRound: (interviewId, roundType) =>
+    api.post(`/interviews/${interviewId}/rounds/start`, roundType, {
+    headers: { "Content-Type": "application/json" },
+  }),
+
+  submitRound: (interviewId, roundType, payload) =>
+    api.post(`/interviews/${interviewId}/rounds/${roundType}/submit`, payload),
+
+  createQuestion: (jobId, data) => api.post(`/interviews/${jobId}/questions`, data),
+};
+
+
+>>>>>>> Stashed changes
 
 export default api 

@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -13,6 +14,24 @@ import Careers from "./pages/Careers";
 import RecruitmentAgencies from "./pages/RecruitmentAgencies";
 import CandidateProfilePage from "./pages/CandidateProfilePage";
 import RecruitmentWorkflow from "./pages/RecruitmentWorkflow";
+=======
+import { Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
+import Layout from './components/Layout'
+import Dashboard from './pages/Dashboard'
+import Employees from './pages/Employees'
+import Candidates from './pages/Candidates'
+import Jobs from './pages/Jobs'
+import Applications from './pages/Applications'
+import Login from './pages/Login'
+import JobPoolCandidatesPage from './pages/JobPoolCandidatesPage'
+import Careers from './pages/Careers'
+import InterviewRound from './pages/InterviewRound'
+import InterviewPage from './pages/InterviewPage'
+import BankQuestionsPage from './pages/BankQuestionsPage'
+import CandidateOffers from './pages/CandidateOffers'
+>>>>>>> Stashed changes
 
 function App() {
   return (
@@ -34,6 +53,7 @@ function App() {
             <Route path="candidates" element={<Candidates />} />
             <Route path="jobs" element={<Jobs />} />
             <Route path="applications" element={<Applications />} />
+<<<<<<< Updated upstream
             <Route
               path="/jobs/:jobId/pool-candidates"
               element={<JobPoolCandidatesPage />}
@@ -48,6 +68,13 @@ function App() {
               path="recruitment-workflow"
               element={<RecruitmentWorkflow />}
             />
+=======
+            <Route path="/jobs/:jobId/pool-candidates" element={<JobPoolCandidatesPage />} />
+            <Route path="interview/:interviewId/:roundType" element={<InterviewRound />} />
+            <Route path="interviews/:applicationId" element={<InterviewPage />} />
+            <Route path="/bank-questions/create" element={<BankQuestionsPage />} />
+            <Route path="/offers" element={<CandidateOffers />} />
+>>>>>>> Stashed changes
           </Route>
         </Routes>
       </div>

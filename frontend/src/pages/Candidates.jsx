@@ -132,6 +132,19 @@ const Candidates = () => {
   }
 }
 
+  const handleIssueOffer = async (candidate) => {
+      if (!confirm(`Issue offer to ${candidate.first_name} ${candidate.last_name}?`)) return;
+
+      try {
+        await candidatesAPI.issueOffer(candidate.id); // 👈 backend API call
+        alert("Offer issued successfully!");
+        fetchCandidates(); // refresh
+      } catch (err) {
+        console.error("Failed to issue offer", err);
+        alert("Failed to issue offer");
+      }
+  };
+
 
   return (
     <div className="space-y-6">
@@ -284,6 +297,15 @@ const Candidates = () => {
                       >
                         ⬇️
                       </a>
+                    )}
+
+                    {candidate.status === 'Shortlisted' && (
+                      <button
+                        className="bg-indigo-600 text-white px-3 py-1 rounded-md text-xs hover:bg-indigo-700"
+                        onClick={() => handleIssueOffer(candidate)}
+                      >
+                        Issue Offer
+                      </button>
                     )}
                   </div>
                 </td>

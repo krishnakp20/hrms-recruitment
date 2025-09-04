@@ -273,6 +273,9 @@ import JobDetailsModal from '../components/JobDetailsModal'
 import JobPoolCandidatesModal from '../components/JobPoolCandidatesModal'
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom'
+import QuestionForm from '../components/QuestionForm'
+import QuestionPickerModal from '../components/QuestionPickerModal';
+
 
 const Jobs = () => {
   const navigate = useNavigate()
@@ -287,6 +290,10 @@ const Jobs = () => {
   const [selectedJob, setSelectedJob] = useState(null)
 //   const [showPoolModal, setShowPoolModal] = useState(false)
 //   const [selectedJobId, setSelectedJobId] = useState(null)
+  const [showQuestionForm, setShowQuestionForm] = useState(false)
+  const [selectedJobForQuestion, setSelectedJobForQuestion] = useState(null)
+  const [showPicker, setShowPicker] = useState(false);
+  const [jobForPicker, setJobForPicker] = useState(null);
   const { user } = useAuth();
   const userRole = user?.role;
 
@@ -401,6 +408,21 @@ const handlePublishJob = async (jobId) => {
   }
 };
 
+//   const handleAddQuestion = (job) => {
+//       setSelectedJobForQuestion(job)
+//       setShowQuestionForm(true)
+//   }
+
+  const handleAddQuestion = (job) => {
+      setJobForPicker(job);
+      setShowPicker(true);
+  };
+
+  const handleCloseQuestionForm = () => {
+      setShowQuestionForm(false)
+      setSelectedJobForQuestion(null)
+  }
+
 
 
   const getStatusColor = (status) => {
@@ -480,7 +502,17 @@ const handlePublishJob = async (jobId) => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredJobs.map(job => (
               <tr key={job.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{job.position_title}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 flex items-center gap-2">
+                  {job.position_title}
+                  <button
+                    className="text-indigo-600 hover:text-indigo-900"
+                    onClick={() => handleAddQuestion(job)}
+                    title="Add Question"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </td>
+
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{job.department?.name || 'N/A'}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{job.location_details || 'N/A'}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{job.employment_type || 'Full-time'}</td>
@@ -567,6 +599,21 @@ const handlePublishJob = async (jobId) => {
           onClose={handleCloseJobDetails}
           job={selectedJob}
       />
+
+      <QuestionForm
+          isOpen={showQuestionForm}
+          onClose={handleCloseQuestionForm}
+          onSuccess={fetchJobs}
+          jobId={selectedJobForQuestion?.id}
+      />
+
+      <QuestionPickerModal
+          isOpen={showPicker}
+          job={jobForPicker}
+          onClose={() => setShowPicker(false)}
+          onAttached={() => {/* optional toast or refresh */}}
+      />
+
 
 {/*       <JobPoolCandidatesModal */}
 {/*           isOpen={showPoolModal} */}
