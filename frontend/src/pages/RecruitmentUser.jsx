@@ -23,25 +23,36 @@ const RecruitmentUser = () => {
       errors.email = "Valid email is required.";
     }
 
-    // Phone validation
-    const phoneRegex = /^[0-9]{10}$/;
-    if (!formData.phone || !phoneRegex.test(formData.phone)) {
-      errors.phone = "Phone number must be 10 digits.";
-    }
+    // // Phone validation
+    // const phoneRegex = /^[0-9]{10}$/;
+    // if (!formData.phone || !phoneRegex.test(formData.phone)) {
+    //   errors.phone = "Phone number must be 10 digits.";
+    // }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
+  // const [formData, setFormData] = useState({
+  //   email: "",
+  //   username: "",
+  //   full_name: "",
+  //   role: "admin", // default
+  //   is_active: true,
+  //   is_superuser: false,
+  //   password: "",
+  // });
+
   const [formData, setFormData] = useState({
-    email: "",
-    username: "",
-    full_name: "",
-    role: "admin", // default
-    is_active: true,
-    is_superuser: false,
-    password: "",
-  });
+  email: "",
+  username: "",
+  full_name: "",
+  role: "recruiter", // ✅ valid
+  is_active: true,
+  is_superuser: false,
+  password: "",
+});
+
 
   const roles = ["admin", "hr_spoc", "employer", "manager", "recruiter"];
 
@@ -115,17 +126,30 @@ const RecruitmentUser = () => {
     }
   };
 
+  // const resetForm = () => {
+  //   setFormData({
+  //     email: "",
+  //     username: "",
+  //     full_name: "",
+  //     role: "user",
+  //     is_active: true,
+  //     is_superuser: false,
+  //     password: "",
+  //   });
+  // };
+
   const resetForm = () => {
-    setFormData({
-      email: "",
-      username: "",
-      full_name: "",
-      role: "user",
-      is_active: true,
-      is_superuser: false,
-      password: "",
-    });
-  };
+  setFormData({
+    email: "",
+    username: "",
+    full_name: "",
+    role: "recruiter", // ✅ valid default
+    is_active: true,
+    is_superuser: false,
+    password: "",
+  });
+};
+
 
   const handleEdit = (user) => {
     setEditingUser(user);
