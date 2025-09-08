@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, employees, candidates, jobs, applications, dashboard, recruitment_agencies, candidate_profile, recruitment_workflow, interviews
+from app.routers import auth, employees, candidates, jobs, applications, dashboard, recruitment_agencies, candidate_profile, recruitment_workflow, interviews, user
 from app.core.config import ALLOWED_ORIGINS, HOST, PORT, DEBUG
 from fastapi.staticfiles import StaticFiles
 import os
@@ -45,6 +45,7 @@ app.include_router(recruitment_workflow.router)
 
 # app.include_router(user.router, prefix="/users", tags=["Users"])
 app.include_router(interviews.router, prefix="/interviews", tags=["Interviews"])
+app.include_router(user.router)
 
 @app.get("/")
 async def root():

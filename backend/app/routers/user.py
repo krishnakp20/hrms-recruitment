@@ -90,9 +90,10 @@
 
 # from fastapi import APIRouter, Depends, HTTPException
 # from sqlalchemy.orm import Session
-# from db import get_db
-# from models import User
-# from schemas import UserCreate, UserUpdate, UserResponse
+# from app.core.database import get_db
+# from app.core.security import get_password_hash
+# from app.models.user import User
+# from app.schemas.user import UserCreate, UserUpdate, User
 # from passlib.context import CryptContext
 # from typing import List
 
@@ -108,7 +109,7 @@
 #     return pwd_context.hash(password)
 
 # # Create User
-# @router.post("/", response_model=UserResponse)
+# @router.post("/", response_model=User)
 # def create_user(user: UserCreate, db: Session = Depends(get_db)):
 #     db_user = db.query(User).filter(User.email == user.email).first()
 #     if db_user:
@@ -130,12 +131,12 @@
 #     return new_user
 
 # # Get All Users
-# @router.get("/", response_model=List[UserResponse])
+# @router.get("/", response_model=List[User])
 # def get_users(db: Session = Depends(get_db)):
 #     return db.query(User).all()
 
 # # Get User by ID
-# @router.get("/{user_id}", response_model=UserResponse)
+# @router.get("/{user_id}", response_model=User)
 # def get_user(user_id: int, db: Session = Depends(get_db)):
 #     user = db.query(User).filter(User.id == user_id).first()
 #     if not user:
@@ -143,7 +144,7 @@
 #     return user
 
 # # Update User
-# @router.put("/{user_id}", response_model=UserResponse)
+# @router.put("/{user_id}", response_model=User)
 # def update_user(user_id: int, user_update: UserUpdate, db: Session = Depends(get_db)):
 #     user = db.query(User).filter(User.id == user_id).first()
 #     if not user:
@@ -170,7 +171,86 @@
 #     return {"message": "User deleted successfully"}
 
 
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.core.database import get_db
+from app.core.security import get_password_hash
+from app.models.user import User as UserModel   # SQLAlchemy model
+from app.schemas.user import UserCreate, UserUpdate, User as UserSchema  # Pydantic schema
+from passlib.context import CryptContext
+from typing import List
 
+router = APIRouter(
+    prefix="/users",
+    tags=["Users"]
+)
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# Utility for hashing password
+def get_password_hash(password: str):
+    return pwd_context.hash(password)
 
+# Create User
+@router.post("/", response_model=UserSchema)
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = db.query(UserModel).filter(UserModel.email == user.email).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    hashed_pw = get_password_hash(user.password)
+    new_user = UserModel(
+        email=user.email,
+        username=user.username,
+        full_name=user.full_name,
+        role=user.role,
+        hashed_password=hashed_pw,
+        is_active=user.is_active,
+        is_superuser=user.is_superuser,
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
+
+# Get All Users
+@router.get("/", response_model=List[UserSchema])
+def get_users(db: Session = Depends(get_db)):
+    return db.query(UserModel).all()
+
+# Get User by ID
+@router.get("/{user_id}", response_model=UserSchema)
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(UserModel).filter(UserModel.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+# Update User
+@router.put("/{user_id}", response_model=UserSchema)
+def update_user(user_id: int, user_update: UserUpdate, db: Session = Depends(get_db)):
+    user = db.query(UserModel).filter(UserModel.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    for key, value in user_update.dict(exclude_unset=True).items():
+        if key == "password":
+            value = get_password_hash(value)
+            setattr(user, "hashed_password", value)  # map password -> hashed_password
+        else:
+            setattr(user, key, value)
+
+    db.commit()
+    db.refresh(user)
+    return user
+
+# Delete User
+@router.delete("/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(UserModel).filter(UserModel.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db.delete(user)
+    db.commit()
+    return {"message": "User deleted successfully"}

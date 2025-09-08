@@ -317,7 +317,7 @@ const CandidateProfileFields = () => {
       {/* Modal Form */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl p-6">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-3xl p-6">
             <h2 className="text-xl font-semibold mb-4">
               {editingId ? "Edit Field" : "Add Field"}
             </h2>
@@ -396,7 +396,7 @@ const CandidateProfileFields = () => {
       {/* View Modal */}
       {viewField && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl space-y-4 max-h-[70vh] p-6">
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-3xl space-y-4 max-h-[70vh] p-6">
             <div className="flex justify-between items-center border-b pb-2">
               <h2 className="text-xl font-semibold mb-4">Field Details</h2>
 

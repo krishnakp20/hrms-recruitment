@@ -128,16 +128,6 @@ export const dashboardAPI = {
   getRecentActivities: () => api.get('/dashboard/activities'),
 }
 
-
-// // External Agencies API
-// export const externalAPI = {
-//   getAll: (params) => api.get('/external-agencies', { params }),
-//   getById: (id) => api.get(`/external-agencies/${id}`),
-//   create: (data) => api.post('/external-agencies', data),
-//   update: (id, data) => api.put(`/external-agencies/${id}`, data),
-//   delete: (id) => api.delete(`/external-agencies/${id}`),
-// }
-
 // Recruitment Agencies API
 export const recruitmentAgencyAPI = {
   getAll: (params) => api.get("/recruitment-agencies", { params }),
@@ -165,6 +155,17 @@ export const workflowTemplateAPI = {
   update: (id, data) => api.put(`/workflow-templates/${id}`, data),
   delete: (id) => api.delete(`/workflow-templates/${id}`),
 };
+
+
+// Users API
+export const usersAPI = {
+  getAll: (params) => api.get("/users", { params }),
+  getById: (id) => api.get(`/users/${id}`),
+  create: (data) => api.post("/users", data),
+  update: (id, data) => api.put(`/users/${id}`, data),
+  delete: (id) => api.delete(`/users/${id}`),
+};
+
 
 export const interviewsAPI = {
   getApplication: (applicationId) =>

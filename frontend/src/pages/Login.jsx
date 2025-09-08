@@ -214,13 +214,12 @@
 
 
 
-
-
-
-
+// Login Page With Model..//
 import { useState } from 'react'
 import { Eye, EyeOff, Lock, User } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const Login = () => {
   const { login } = useAuth()
@@ -233,8 +232,21 @@ const Login = () => {
     e.preventDefault()
     setLoading(true)
     setError('')
-    const result = await login(formData)
-    if (!result.success) setError(result.error)
+ const result = await login(formData)
+    console.log("Login result:", result) // Debug
+
+    if (!result.success) {
+      setError(result.error || 'Invalid email or password')
+    } else {
+      toast.success('Login successful!', {
+        position: 'top-right',
+        autoClose: 3000,
+      })
+      // navigate('/dashboard')
+    }
+
+
+    // if (!result.success) setError(result.error)
     setLoading(false)
   }
 
@@ -316,6 +328,9 @@ const Login = () => {
             </button>
           </div>
 
+            {/* ❌ Error message below inputs */}
+          {error && <div className="text-red-600 text-sm">{error}</div>}
+
           <div className="flex items-center justify-between text-sm">
             <label className="flex items-center space-x-2">
               <input type="checkbox" className="form-checkbox" />
@@ -358,3 +373,4 @@ const Login = () => {
 }
 
 export default Login
+
