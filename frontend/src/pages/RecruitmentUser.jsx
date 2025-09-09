@@ -47,18 +47,18 @@ const RecruitmentUser = () => {
   email: "",
   username: "",
   full_name: "",
-  role: "recruiter", // ✅ valid
+  role: "", // ✅ valid
   is_active: true,
   is_superuser: false,
   password: "",
 });
 
 
-  const roles = ["admin", "hr_spoc", "employer", "manager", "recruiter"];
+  const roles = ["ADMIN", "HR_SPOC", "EMPLOYER", "MANAGER", "RECRUITER"];
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 5;
+  const rowsPerPage = 10;
 
   useEffect(() => {
     loadUsers();
@@ -143,7 +143,7 @@ const RecruitmentUser = () => {
     email: "",
     username: "",
     full_name: "",
-    role: "recruiter", // ✅ valid default
+    role: "", // ✅ valid default
     is_active: true,
     is_superuser: false,
     password: "",
@@ -180,7 +180,11 @@ const RecruitmentUser = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Recruitment User</h1>
+          <div>
+              <h1 className="text-2xl font-bold text-gray-900">Users</h1>
+              <p className="text-gray-600">Manage users and their roles</p>
+          </div>
+
         <button
           className="btn-primary flex items-center"
           onClick={() => {

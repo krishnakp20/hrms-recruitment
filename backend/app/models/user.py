@@ -5,11 +5,11 @@ import enum
 from app.core.database import Base
 
 class UserRole(str, enum.Enum):
-    ADMIN = "admin"
-    HR_SPOC = "hr_spoc"
-    EMPLOYER = "employer"
-    MANAGER = "manager"
-    RECRUITER = "recruiter"
+    ADMIN = "ADMIN"
+    HR_SPOC = "HR_SPOC"
+    EMPLOYER = "EMPLOYER"
+    MANAGER = "MANAGER"
+    RECRUITER = "RECRUITER"
 
 class User(Base):
     __tablename__ = "users"

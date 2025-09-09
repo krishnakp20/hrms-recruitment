@@ -228,8 +228,9 @@ const RecruitmentAgencies = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            External Agencies
+            Recruitment Agencies
           </h1>
+          <p className="text-gray-600">Manage external recruitment agencies</p>
         </div>
         <button
           className="btn-primary flex items-center"

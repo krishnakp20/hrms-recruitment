@@ -28,7 +28,7 @@ from datetime import datetime
 class RecruitmentAgencyBase(BaseModel):
     name: str
     contact_person: Optional[str] = None
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
     phone: Optional[str] = None
     website: Optional[str] = None
     is_active: Optional[bool] = True
