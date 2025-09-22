@@ -83,8 +83,12 @@ async def get_jobs(
     elif current_user.role == UserRole.ADMIN:
         # Admin can see all jobs
         pass
-    
-    jobs = query.offset(skip).limit(limit).all()
+
+    jobs = (
+        query.order_by(JobModel.id.desc())
+        .offset(skip)
+        .all()
+    )
     # Add pool candidate count to each job
     job_outputs = []
     for job in jobs:
@@ -260,7 +264,12 @@ async def get_workflows(
     db: Session = Depends(get_db)
 ):
     """Get all recruitment workflows"""
-    workflows = db.query(RecruitmentWorkflowModel).offset(skip).limit(limit).all()
+    workflows = (
+        db.query(RecruitmentWorkflowModel)
+        .order_by(RecruitmentWorkflowModel.id.desc())
+        .offset(skip)
+        .all()
+    )
     return workflows
 
 @router.post("/workflows/", response_model=RecruitmentWorkflow)
@@ -287,7 +296,12 @@ async def get_agencies(
     db: Session = Depends(get_db)
 ):
     """Get all recruitment agencies"""
-    agencies = db.query(RecruitmentAgencyModel).offset(skip).limit(limit).all()
+    agencies = (
+        db.query(RecruitmentAgencyModel)
+        .order_by(RecruitmentAgencyModel.id.desc())
+        .offset(skip)
+        .all()
+    )
     return agencies
 
 @router.post("/agencies/", response_model=RecruitmentAgency)
@@ -376,7 +390,7 @@ async def get_departments(
         db: Session = Depends(get_db)
 ):
     """Get all departments"""
-    departments = db.query(DepartmentModel).offset(skip).limit(limit).all()
+    departments = db.query(DepartmentModel).offset(skip).all()
     return departments
 
 

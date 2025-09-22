@@ -35,6 +35,7 @@ const JobDetailsModal = ({ isOpen, onClose, job }) => {
           <div><strong>Hiring Deadline:</strong> {job.hiring_deadline}</div>
           <div><strong>Approval Authority:</strong> {job.approval_authority || 'N/A'}</div>
           <div><strong>Status:</strong> {job.status}</div>
+          <div><strong>Created By:</strong> {job.created_by_user?.username}</div>
         </div>
 
         <div className="pt-4">

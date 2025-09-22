@@ -9,6 +9,8 @@ const Applications = () => {
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [applications, setApplications] = useState([])
   const [loading, setLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [rowsPerPage] = useState(10)
 
   const statuses = ['all', 'Applied', 'Shortlisted', 'Interviewed', 'Rejected', 'Hired']
 
@@ -49,6 +51,13 @@ const Applications = () => {
     return matchesSearch && matchesStatus
   })
 
+  // ✅ Pagination calculations
+  const indexOfLastRow = currentPage * rowsPerPage
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage
+  const currentRows = filteredApplications.slice(indexOfFirstRow, indexOfLastRow)
+
+  const totalPages = Math.ceil(filteredApplications.length / rowsPerPage)
+
   return (
     <div className="space-y-6">
       <div>
@@ -88,59 +97,96 @@ const Applications = () => {
       </div>
 
       {/* Table */}
-      <div className="card overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="card overflow-x-auto overflow-y-auto max-h-[70vh]">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50 sticky top-0 z-10">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">S.No.</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Candidate</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Job Position</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {loading ? (
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Candidate</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Job Position</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <td colSpan="6" className="text-center py-6">Loading...</td>
             </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {loading ? (
-              <tr>
-                <td colSpan="6" className="text-center py-6">Loading...</td>
+          ) : currentRows.length === 0 ? (
+            <tr>
+              <td colSpan="6" className="text-center py-6">No applications found.</td>
+            </tr>
+          ) : (
+            currentRows.map((application, index) => (
+              <tr key={application.id} className="hover:bg-gray-50">
+                {/* ✅ Serial number */}
+                <td className="px-6 py-4 text-sm text-gray-900">
+                  {(currentPage - 1) * rowsPerPage + index + 1}
+                </td>
+
+                <td className="px-6 py-4">
+                  <div className="text-sm font-medium text-gray-900">
+                    {application.candidate.first_name} {application.candidate.last_name}
+                  </div>
+                  <div className="text-sm text-gray-500">{application.candidate.email}</div>
+                  <div className="text-sm text-gray-500">{application.candidate.phone}</div>
+                </td>
+
+                <td className="px-6 py-4">
+                  <div className="text-sm font-medium text-gray-900">{application.job.position_title}</div>
+                  <div className="text-sm text-gray-500">{application.job.experience_level} experience</div>
+                </td>
+
+                <td className="px-6 py-4 text-sm text-gray-900">
+                  {application.job.department.name}
+                </td>
+
+                <td className="px-6 py-4">
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(application.status)}`}>
+                    {application.status}
+                  </span>
+                </td>
+
+                <td className="px-6 py-4 text-right text-sm font-medium">
+                  <div className="flex items-center justify-end space-x-2">
+                    <button
+                      onClick={() => navigate(`/interviews/${application.id}`)}
+                      className="px-3 py-1 bg-indigo-600 text-white rounded"
+                    >
+                      Start Interview
+                    </button>
+                  </div>
+                </td>
               </tr>
-            ) : filteredApplications.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="text-center py-6">No applications found.</td>
-              </tr>
-            ) : (
-              filteredApplications.map((application) => (
-                <tr key={application.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{application.candidate.first_name} {application.candidate.last_name}</div>
-                    <div className="text-sm text-gray-500">{application.candidate.email}</div>
-                    <div className="text-sm text-gray-500">{application.candidate.phone}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{application.job.position_title}</div>
-                    <div className="text-sm text-gray-500">{application.job.experience_level} experience</div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{application.job.department.name}</td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(application.status)}`}>
-                      {application.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right text-sm font-medium">
-                    <div className="flex items-center justify-end space-x-2">
-                      <button
-                          onClick={() => navigate(`/interviews/${application.id}`)}
-                          className="px-3 py-1 bg-indigo-600 text-white rounded"
-                        >
-                          Start Interview
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+            ))
+          )}
+        </tbody>
+      </table>
+
+      {/* ✅ Pagination controls */}
+      <div className="flex items-center justify-between px-6 py-3 border-t bg-gray-50">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 border rounded disabled:opacity-50"
+          >
+            Prev
+          </button>
+
+          <span className="text-sm text-gray-600">
+              Page {currentPage} of {totalPages}
+          </span>
+
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 border rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+      </div>
       </div>
     </div>
   )

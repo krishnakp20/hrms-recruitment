@@ -27,6 +27,9 @@ const RecruitmentWorkflowTemplates = () => {
   });
   const [statusFilter, setStatusFilter] = useState(""); // ✅ New state for status filter
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
+
   // Fetch all templates
   // const fetchTemplates = async () => {
   //   try {
@@ -284,6 +287,12 @@ const RecruitmentWorkflowTemplates = () => {
     return date.toLocaleString("en-GB", options).replace(/ /g, " ");
   };
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredTemplates.length / rowsPerPage);
+  const indexOfLast = currentPage * rowsPerPage;
+  const indexOfFirst = indexOfLast - rowsPerPage;
+  const currentTemplates = filteredTemplates.slice(indexOfFirst, indexOfLast);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -333,43 +342,46 @@ const RecruitmentWorkflowTemplates = () => {
       </div>
 
       {/* Recruitment Workflow Table */}
-      <div className="card overflow-x-auto">
-        {loading ? (
-          <p className="p-4">Loading...</p>
-        ) : (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Steps
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Status
-                </th>
-                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Description
-                </th> */}
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Created At
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredTemplates.map((t) => (
+      <div className="card overflow-x-auto overflow-y-auto max-h-[500px]">
+      {loading ? (
+        <p className="p-4">Loading...</p>
+      ) : (
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50 sticky top-0 z-10">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                S.No
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Name
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Steps
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Created At
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {currentTemplates.length > 0 ? (
+              currentTemplates.map((t, index) => (
                 <tr key={t.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {(currentPage - 1) * rowsPerPage + index + 1} {/* Serial Number */}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {t.name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {Array.isArray(t.steps) ? t.steps.length : 0}
                   </td>
-
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
@@ -379,7 +391,6 @@ const RecruitmentWorkflowTemplates = () => {
                       {t.is_active ? "Active" : "Inactive"}
                     </span>
                   </td>
-
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatDate(t.created_at)}
                   </td>
@@ -404,18 +415,41 @@ const RecruitmentWorkflowTemplates = () => {
                     </button>
                   </td>
                 </tr>
-              ))}
-              {filteredTemplates.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="text-center text-gray-500 py-6">
-                    No templates found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        )}
+              ))
+            ) : (
+              <tr>
+                <td colSpan={6} className="text-center text-gray-500 py-6 text-sm">
+                  No templates found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      )}
+    </div>
+
+    {/* Pagination controls */}
+    {totalPages > 1 && (
+      <div className="flex items-center justify-between px-6 py-3 border-t bg-gray-50">
+        <button
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage((p) => p - 1)}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Prev
+        </button>
+        <span className="text-sm text-gray-600">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage((p) => p + 1)}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Next
+        </button>
       </div>
+    )}
 
       {/* Modal Form */}
       {showForm && (

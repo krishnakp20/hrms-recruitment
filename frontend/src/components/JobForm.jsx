@@ -520,7 +520,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Minimum Salary
+                Minimum Salary (per Month)
               </label>
               <input
                 type="number"
@@ -534,7 +534,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Maximum Salary
+                Maximum Salary (per Month)
               </label>
               <input
                 type="number"

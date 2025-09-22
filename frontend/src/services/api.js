@@ -185,4 +185,13 @@ export const interviewsAPI = {
   createQuestion: (jobId, data) => api.post(`/interviews/${jobId}/questions`, data),
 };
 
+
+export const departmentsAPI = {
+  getDepartments: (params) => api.get("/jobs/departments/", { params }),
+  createDepartment: (data) => api.post("/jobs/departments/", data),
+  updateDepartment: (id, data) => api.put(`/jobs/departments/${id}`, data),
+  deleteDepartment: (id) => api.delete(`/jobs/departments/${id}`),
+};
+
+
 export default api 

@@ -10,6 +10,8 @@ const BankQuestionsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchQuestions();
@@ -61,6 +63,12 @@ const BankQuestionsPage = () => {
       q.competency?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = filteredQuestions.slice(indexOfFirstItem, indexOfLastItem);
+
+    const totalPages = Math.ceil(filteredQuestions.length / itemsPerPage);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -94,61 +102,95 @@ const BankQuestionsPage = () => {
       </div>
 
       {/* Questions Table */}
-      <div className="card overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50">
+      <div className="card overflow-x-auto max-h-[500px] overflow-y-auto">
+      <table className="min-w-full divide-y divide-gray-200 text-sm">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">S.No</th>
+            <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">Round</th>
+            <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">Question</th>
+            <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">Competency</th>
+            <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">Expected Points</th>
+            <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">Weight</th>
+            <th className="px-6 py-3 text-right font-medium text-gray-500 uppercase">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {loading ? (
             <tr>
-              <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">Round</th>
-              <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">Question</th>
-              <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">Competency</th>
-              <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">Expected Points</th>
-              <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">Weight</th>
-              <th className="px-6 py-3 text-right font-medium text-gray-500 uppercase">Actions</th>
+              <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                Loading…
+              </td>
             </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {loading ? (
-              <tr>
-                <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                  Loading…
+          ) : currentItems.length ? (
+            currentItems.map((q, index) => (
+              <tr key={q.id} className="hover:bg-gray-50">
+                {/* Serial Number */}
+                <td className="px-6 py-4">
+                  {(currentPage - 1) * itemsPerPage + index + 1}
+                </td>
+                <td className="px-6 py-4">{q.round_type}</td>
+                <td className="px-6 py-4">{q.text}</td>
+                <td className="px-6 py-4">{q.competency || "-"}</td>
+                <td className="px-6 py-4">
+                  {(q.expected_points || []).join(", ") || "-"}
+                </td>
+                <td className="px-6 py-4">{q.default_weight}</td>
+                <td className="px-6 py-4 text-right">
+                  <div className="flex justify-end gap-2">
+                    <button
+                      className="text-gray-600 hover:text-gray-900"
+                      onClick={() => handleEdit(q)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button
+                      className="text-red-600 hover:text-red-900"
+                      onClick={() => handleDelete(q.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </td>
               </tr>
-            ) : filteredQuestions.length ? (
-              filteredQuestions.map((q) => (
-                <tr key={q.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">{q.round_type}</td>
-                  <td className="px-6 py-4">{q.text}</td>
-                  <td className="px-6 py-4">{q.competency || "-"}</td>
-                  <td className="px-6 py-4">{(q.expected_points || []).join(", ") || "-"}</td>
-                  <td className="px-6 py-4">{q.default_weight}</td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        className="text-gray-600 hover:text-gray-900"
-                        onClick={() => handleEdit(q)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        className="text-red-600 hover:text-red-900"
-                        onClick={() => handleDelete(q.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                  No questions found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                No questions found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+
+      {/* ✅ Pagination controls */}
+      <div className="flex items-center justify-between px-6 py-3 border-t bg-gray-50">
+        {/* Prev */}
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Prev
+        </button>
+
+        {/* Page Info */}
+        <span className="text-sm text-gray-600">
+          Page {currentPage} of {totalPages}
+        </span>
+
+        {/* Next */}
+        <button
+          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Next
+        </button>
       </div>
+    </div>
+
 
       {/* Form Modal */}
       {showForm && (

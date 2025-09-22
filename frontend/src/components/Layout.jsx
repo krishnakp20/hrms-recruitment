@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Building2,
   Workflow,
+  Layers,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
@@ -41,6 +42,7 @@ const Layout = () => {
         { name: "Users", href: "/users", icon: Users },
         { name: "Recruitment Agencies", href: "/recruitment-agencies", icon: Building2 },
         { name: "Recruitment Workflows", href: "/recruitment-workflow", icon: Workflow },
+        { name: "Departments", href: "/department", icon: Layers },
       ],
     },
   ];

@@ -18,6 +18,7 @@ import InterviewPage from './pages/InterviewPage'
 import BankQuestionsPage from './pages/BankQuestionsPage'
 import CandidateOffers from './pages/CandidateOffers'
 import RecruitmentUser from "./pages/RecruitmentUser";
+import DepartmentPage from "./pages/DepartmentPage";
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
             <Route path="/bank-questions/create" element={<BankQuestionsPage />} />
             <Route path="/offers" element={<CandidateOffers />} />
             <Route path="/users" element={<RecruitmentUser />} />
+            <Route path="/department" element={<DepartmentPage />} />
           </Route>
         </Routes>
       </div>

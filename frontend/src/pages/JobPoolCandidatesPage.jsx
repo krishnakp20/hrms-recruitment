@@ -9,6 +9,8 @@ const JobPoolCandidatesPage = () => {
   const [candidates, setCandidates] = useState([])
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
 
   const fetchPoolCandidates = async () => {
     setLoading(true)
@@ -57,6 +59,12 @@ const JobPoolCandidatesPage = () => {
   }
 }
 
+    const totalPages = Math.ceil(filteredCandidates.length / itemsPerPage)
+    const paginatedCandidates = filteredCandidates.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    )
+
 
   return (
     <div className="space-y-6 p-6">
@@ -86,58 +94,84 @@ const JobPoolCandidatesPage = () => {
       </div>
 
       {/* Table */}
-      <div className="card overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="card relative bg-white shadow-md rounded-xl overflow-x-auto overflow-y-auto max-h-[500px]">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50 sticky top-0 z-10">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">S.No</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">City</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Experience</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skills</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {loading ? (
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">City</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Experience</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skills</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ACTION</th>
+              <td colSpan="9" className="text-center py-6">Loading...</td>
             </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {loading ? (
-              <tr>
-                <td colSpan="3" className="text-center py-6">Loading...</td>
+          ) : paginatedCandidates.length === 0 ? (
+            <tr>
+              <td colSpan="9" className="text-center py-6">No matched candidates in the pool.</td>
+            </tr>
+          ) : (
+            paginatedCandidates.map((candidate, index) => (
+              <tr key={candidate.id} className="hover:bg-gray-50">
+                {/* Serial Number */}
+                <td className="px-6 py-4 text-sm text-gray-900">
+                  {(currentPage - 1) * itemsPerPage + index + 1}
+                </td>
+                <td className="px-6 py-4">{candidate.first_name} {candidate.last_name}</td>
+                <td className="px-6 py-4">{candidate.email}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.phone}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.location_city}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.experience_years} years</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.cover_letter}</td>
+                <td className="px-6 py-4">
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(candidate.status)}`}>
+                    {candidate.status || 'N/A'}
+                  </span>
+                </td>
+                <td className="px-6 py-4">
+                  {candidate.status !== 'Shortlisted' && (
+                    <button
+                      onClick={() => handleShortlist(candidate.id)}
+                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                    >
+                      Shortlist
+                    </button>
+                  )}
+                </td>
               </tr>
-            ) : filteredCandidates.length === 0 ? (
-              <tr>
-                <td colSpan="3" className="text-center py-6">No matched candidates in the pool.</td>
-              </tr>
-            ) : (
-              filteredCandidates.map(candidate => (
-                <tr key={candidate.id}>
-                  <td className="px-6 py-4">{candidate.first_name} {candidate.last_name}</td>
-                  <td className="px-6 py-4">{candidate.email}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.phone}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.location_city}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.experience_years} years</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.cover_letter}</td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(candidate.status)}`}>
-                      {candidate.status || 'N/A'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                      {candidate.status !== 'Shortlisted' && (
-                        <button
-                          onClick={() => handleShortlist(candidate.id)}
-                          className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                        >
-                          Shortlist
-                        </button>
-                      )}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+            ))
+          )}
+        </tbody>
+      </table>
+
+      {/* ✅ Pagination Controls */}
+      <div className="flex items-center justify-between px-6 py-3 border-t bg-gray-50">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Prev
+        </button>
+        <span className="text-sm text-gray-600">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
       </div>
     </div>
   )

@@ -297,6 +297,9 @@ const Jobs = () => {
   const { user } = useAuth();
   const userRole = user?.role;
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const jobsPerPage = 10;
+
   useEffect(() => {
     fetchJobs()
   }, [])
@@ -437,6 +440,13 @@ const handlePublishJob = async (jobId) => {
     }
   }
 
+  // Pagination logic
+  const indexOfLast = currentPage * jobsPerPage;
+  const indexOfFirst = indexOfLast - jobsPerPage;
+  const currentJobs = filteredJobs.slice(indexOfFirst, indexOfLast);
+
+  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -482,73 +492,87 @@ const handlePublishJob = async (jobId) => {
       </div>
 
       {/* Jobs Table */}
-      <div className="card overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Salary</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Pool / Vacancies
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date Added</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredJobs.map(job => (
-              <tr key={job.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 flex items-center gap-2">
-                  {job.position_title}
-                  <button
-                    className="text-indigo-600 hover:text-indigo-900"
-                    onClick={() => handleAddQuestion(job)}
-                    title="Add Question"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </td>
+      <div className="card overflow-x-auto overflow-y-auto max-h-[75vh]">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">S.No.</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Salary</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pool / Vacancies</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date Added</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+          </tr>
+        </thead>
 
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{job.department?.name || 'N/A'}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{job.location_details || 'N/A'}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{job.employment_type || 'Full-time'}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  ₹{job.compensation_min?.toLocaleString()} - ₹{job.compensation_max?.toLocaleString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(job.status)}`}>
-                    {job.status?.replace('_', ' ')}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900 font-medium text-blue-600 cursor-pointer underline"
-                    onClick={() => navigate(`/jobs/${job.id}/pool-candidates`)}>
-                  {job.pool_candidate_count || 0} / {job.number_of_vacancies || 0}
-                </td>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {currentJobs.map((job, index) => (
+            <tr key={job.id} className="hover:bg-gray-50">
+              {/* ✅ Serial Number */}
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                {(currentPage - 1) * jobsPerPage + index + 1}
+              </td>
 
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {new Date(job.created_at).toLocaleDateString('en-GB').replace(/\//g, '-')}
-                </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 flex items-center gap-2">
+                {job.position_title}
+                <button
+                  className="text-indigo-600 hover:text-indigo-900"
+                  onClick={() => handleAddQuestion(job)}
+                  title="Add Question"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </td>
 
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex items-center justify-end space-x-2">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {job.department?.name || "N/A"}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {job.location_details || "N/A"}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {job.employment_type || "Full-time"}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                ₹{job.compensation_min?.toLocaleString()} - ₹{job.compensation_max?.toLocaleString()}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <span
+                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(job.status)}`}
+                >
+                  {job.status?.replace("_", " ")}
+                </span>
+              </td>
+              <td
+                className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900 font-medium text-blue-600 cursor-pointer underline"
+                onClick={() => navigate(`/jobs/${job.id}/pool-candidates`)}
+              >
+                {job.pool_candidate_count || 0} / {job.number_of_vacancies || 0}
+              </td>
 
-                    {job.status === 'Draft' && (
-                      <button
-                        className="text-blue-600 hover:text-blue-900"
-                        onClick={() => handleSubmitForApproval(job.id)}
-                      >
-                        <span title="Submit for Approval">
-                          <Send className="h-4 w-4" />
-                        </span>
-                      </button>
-                    )}
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {new Date(job.created_at).toLocaleDateString("en-GB").replace(/\//g, "-")}
+              </td>
 
-                    {job.status === 'Pending Approval' &&
-                     (userRole === 'HR_SPOC' || userRole === 'ADMIN') && (
+              {/* ✅ Actions */}
+              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <div className="flex items-center justify-end space-x-2">
+                  {job.status === "Draft" && (
+                    <button
+                      className="text-blue-600 hover:text-blue-900"
+                      onClick={() => handleSubmitForApproval(job.id)}
+                      title="Submit for Approval"
+                    >
+                      <Send className="h-4 w-4" />
+                    </button>
+                  )}
+
+                  {job.status === "Pending Approval" &&
+                    (userRole === "HR_SPOC" || userRole === "ADMIN") && (
                       <button
                         className="text-green-600 hover:text-green-900"
                         onClick={() => handleApprove(job.id)}
@@ -558,32 +582,61 @@ const handlePublishJob = async (jobId) => {
                       </button>
                     )}
 
-                    <button className="text-primary-600 hover:text-primary-900" onClick={() => handleViewJob(job)}>
-                      <Eye className="h-4 w-4" />
-                    </button>
-                    <button className="text-gray-600 hover:text-gray-900" onClick={() => handleEditJob(job)}>
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteJob(job.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                  <button
+                    className="text-primary-600 hover:text-primary-900"
+                    onClick={() => handleViewJob(job)}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </button>
+                  <button
+                    className="text-gray-600 hover:text-gray-900"
+                    onClick={() => handleEditJob(job)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </button>
+                  <button
+                    className="text-red-600 hover:text-red-900"
+                    onClick={() => handleDeleteJob(job.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
 
-                    {job.status === 'Approved' && !job.is_published && (
-                      <button
-                        className="text-indigo-600 hover:text-indigo-900"
-                        onClick={() => handlePublishJob(job.id)}
-                        title="Publish Job"
-                      >
-                        <Send className="h-4 w-4" />
-                      </button>
-                    )}
+                  {job.status === "Approved" && !job.is_published && (
+                    <button
+                      className="text-indigo-600 hover:text-indigo-900"
+                      onClick={() => handlePublishJob(job.id)}
+                      title="Publish Job"
+                    >
+                      <Send className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* ✅ Pagination Controls */}
+      <div className="flex justify-between items-center p-4">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className="px-3 py-1 text-sm bg-gray-200 rounded disabled:opacity-50"
+        >
+          Prev
+        </button>
+        <span className="text-sm">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 text-sm bg-gray-200 rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
       </div>
 
       {/* Job Form Modal */}

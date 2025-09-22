@@ -10,8 +10,13 @@ from app.models.user import UserRole
 router = APIRouter()
 
 @router.get("/", response_model=List[Application])
-async def get_applications(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    applications = db.query(ApplicationModel).offset(skip).limit(limit).all()
+async def get_applications(skip: int = 0, db: Session = Depends(get_db)):
+    applications = (
+        db.query(ApplicationModel)
+        .order_by(ApplicationModel.id.desc())
+        .offset(skip)
+        .all()
+    )
     return applications
 
 @router.get("/{application_id}", response_model=Application)

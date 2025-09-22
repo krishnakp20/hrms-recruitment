@@ -154,11 +154,11 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
               <input id="notice_period" name="notice_period" type="number" value={formData.notice_period} onChange={handleChange} className="input-field" />
             </div>
             <div>
-              <label htmlFor="current_compensation" className="block text-sm font-medium text-gray-700 mb-1">Current Compensation</label>
+              <label htmlFor="current_compensation" className="block text-sm font-medium text-gray-700 mb-1">Current Compensation (per Month) </label>
               <input id="current_compensation" name="current_compensation" type="number" value={formData.current_compensation} onChange={handleChange} className="input-field" />
             </div>
             <div>
-              <label htmlFor="expected_compensation" className="block text-sm font-medium text-gray-700 mb-1">Expected Compensation</label>
+              <label htmlFor="expected_compensation" className="block text-sm font-medium text-gray-700 mb-1">Expected Compensation (per Month) </label>
               <input id="expected_compensation" name="expected_compensation" type="number" value={formData.expected_compensation} onChange={handleChange} className="input-field" />
             </div>
           </div>

@@ -3,6 +3,7 @@ from typing import Optional, List
 from datetime import datetime, date
 from app.models.job import JobStatus, JobType, LocationType
 from app.models.interview import RoundType
+from .user import User
 
 
 class DepartmentBase(BaseModel):
@@ -91,6 +92,7 @@ class Job(JobBase):
     pool_candidate_count: int = 0
     department: Optional[Department] = None
     employment_type: Optional[str] = None
+    created_by_user: Optional[User] = None
     created_by: Optional[int] = None
     approved_by: Optional[int] = None
     approved_at: Optional[datetime] = None

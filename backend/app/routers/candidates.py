@@ -29,8 +29,7 @@ router = APIRouter()
 # Candidate Management Endpoints
 @router.get("/", response_model=List[Candidate])
 async def get_candidates(
-    skip: int = 0, 
-    limit: int = 100, 
+    skip: int = 0,
     status: Optional[CandidateStatus] = None,
     source: Optional[CandidateSource] = None,
     is_in_pool: Optional[bool] = None,
@@ -60,8 +59,12 @@ async def get_candidates(
     else:
         # Other roles have limited access
         query = query.filter(CandidateModel.created_by == current_user.id)
-    
-    candidates = query.offset(skip).limit(limit).all()
+
+    candidates = (
+        query.order_by(CandidateModel.id.desc())
+        .offset(skip)
+        .all()
+    )
     return candidates
 
 @router.get("/{candidate_id}", response_model=Candidate)
@@ -152,8 +155,7 @@ async def delete_candidate(
 # Candidate Pool Management
 @router.get("/pool/", response_model=List[Candidate])
 async def get_candidate_pool(
-    skip: int = 0, 
-    limit: int = 100, 
+    skip: int = 0,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
@@ -163,7 +165,7 @@ async def get_candidate_pool(
     
     candidates = db.query(CandidateModel).filter(
         CandidateModel.is_in_pool == True
-    ).offset(skip).limit(limit).all()
+    ).offset(skip).all()
     return candidates
 
 @router.post("/{candidate_id}/add-to-pool")
@@ -348,7 +350,6 @@ async def search_candidates(
     experience_max: Optional[int] = Query(None, description="Maximum experience years"),
     location: Optional[str] = Query(None, description="Location"),
     skip: int = 0,
-    limit: int = 100,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
@@ -388,25 +389,40 @@ async def search_candidates(
             (CandidateModel.location_state.contains(location))
         )
     
-    candidates = query_filter.offset(skip).limit(limit).all()
+    candidates = query_filter.offset(skip).all()
     return candidates
 
 
 @router.post("/upload-excel/")
-async def upload_candidates_excel(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def upload_candidates_excel(
+    file: UploadFile = File(...), db: Session = Depends(get_db)
+):
 
     if not file.filename.endswith(('.xlsx', '.xls')):
-        raise HTTPException(status_code=400, detail="Invalid file format. Please upload an Excel file.")
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid file format. Please upload an Excel file."
+        )
 
     try:
         contents = await file.read()
         df = pd.read_excel(BytesIO(contents))
 
-        # Check for required columns
-        required_columns = ["first_name", "last_name", "email", "phone", "source", "status"]
+        # Normalize column names
+        df.columns = df.columns.str.strip().str.lower()
+
+        # Required columns based on DB schema
+        required_columns = [
+            "first_name", "last_name", "email", "phone",
+            "location_state", "location_city", "location_area",
+            "location_pincode", "education_qualification_short"
+        ]
         missing_cols = [col for col in required_columns if col not in df.columns]
         if missing_cols:
-            raise HTTPException(status_code=400, detail=f"Missing columns: {', '.join(missing_cols)}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Missing columns: {', '.join(missing_cols)}"
+            )
 
         # Insert candidates
         for idx, row in df.iterrows():
@@ -416,20 +432,15 @@ async def upload_candidates_excel(file: UploadFile = File(...), db: Session = De
                     last_name=str(row["last_name"]).strip() if pd.notna(row["last_name"]) else None,
                     email=str(row["email"]).strip() if pd.notna(row["email"]) else None,
                     phone=str(row["phone"]).strip() if pd.notna(row["phone"]) else None,
-                    source=CandidateSource(str(row["source"]).strip()),
-                    status=CandidateStatus(str(row["status"]).strip()),
                     location_state=str(row["location_state"]).strip() if pd.notna(row.get("location_state")) else None,
                     location_city=str(row["location_city"]).strip() if pd.notna(row.get("location_city")) else None,
-                    experience_years=row.get("experience_years"),
-                    education_qualification_short=str(row.get("education_qualification_short")).strip()
+                    location_area=str(row["location_area"]).strip() if pd.notna(row.get("location_area")) else None,
+                    location_pincode=str(row["location_pincode"]).strip() if pd.notna(row.get("location_pincode")) else None,
+                    education_qualification_short=str(row["education_qualification_short"]).strip()
                         if pd.notna(row.get("education_qualification_short")) else None,
                 )
                 db.add(candidate)
-            except ValueError as ve:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Row {idx + 2}: {ve} (check Enum values for 'source' and 'status')"
-                )
+
             except Exception as row_err:
                 raise HTTPException(
                     status_code=400,
@@ -437,43 +448,36 @@ async def upload_candidates_excel(file: UploadFile = File(...), db: Session = De
                 )
 
         db.commit()
-
         return {"message": f"Candidates uploaded successfully: {len(df)}"}
 
     except HTTPException:
         raise
     except Exception as e:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error: {e}"
+        )
+
 
 
 
 @router.get("/download-template/")
 async def download_template():
     # Define headers for the Excel template
-    template_data = {
-        "first_name": [""],
-        "last_name": [""],
-        "email": [""],
-        "phone": [""],
-        "location_state": [""],
-        "location_city": [""],
-        "location_area": [""],
-        "location_pincode": [""],
-        "education_qualification_short": [""],
-        "education_qualification_detailed": [""],
-        "experience_years": [""],
-        "experience_details": [""],
-        "notice_period_days": [""],
-        "current_compensation": [""],
-        "expected_compensation": [""],
-        "source": [""],
-        "source_details": [""],
-        "status": [""],
-        "is_in_pool": [""],
-    }
+    template_columns = [
+        "first_name",
+        "last_name",
+        "email",
+        "phone",
+        "location_state",
+        "location_city",
+        "location_area",
+        "location_pincode",
+        "education_qualification_short",
+    ]
 
-    df = pd.DataFrame(template_data)
+    df = pd.DataFrame(columns=template_columns)  # Only headers, no dummy row
 
     output_dir = "templates"
     os.makedirs(output_dir, exist_ok=True)
@@ -486,6 +490,7 @@ async def download_template():
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         filename="candidate_upload_template.xlsx"
     )
+
 
 
 OFFER_DIR = Path("offers")

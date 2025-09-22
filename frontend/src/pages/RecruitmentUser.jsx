@@ -227,13 +227,16 @@ const RecruitmentUser = () => {
       </div>
 
       {/* Users Table */}
-      <div className="card overflow-x-auto">
+      <div className="card overflow-x-auto overflow-y-auto max-h-[500px]">
         {loading ? (
           <p className="p-4">Loading...</p>
         ) : (
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  S.No
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Email
                 </th>
@@ -255,45 +258,44 @@ const RecruitmentUser = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {currentUsers.map((u) => (
-                <tr key={u.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm">{u.email}</td>
-                  <td className="px-6 py-4 text-sm">{u.username}</td>
-                  <td className="px-6 py-4 text-sm">{u.role}</td>
-                  <td className="px-6 py-4 text-sm">
-                    {u.is_active ? "✅" : "❌"}
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    {u.is_superuser ? "✅" : "❌"}
-                  </td>
-                  <td className="px-6 py-4 text-right text-sm font-medium space-x-3">
-                    <button
-                      className="text-blue-600 hover:text-blue-900"
-                      onClick={() => setViewUser(u)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
-                    <button
-                      className="text-gray-600 hover:text-gray-900"
-                      onClick={() => handleEdit(u)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <button
-                      className="text-red-600 hover:text-red-900"
-                      onClick={() => handleDelete(u.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {currentUsers.length === 0 && (
+              {currentUsers.length > 0 ? (
+                currentUsers.map((u, index) => (
+                  <tr key={u.id} className="hover:bg-gray-50">
+                    {/* Serial number */}
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {(currentPage - 1) * 10 + index + 1}
+                    </td>
+
+                    <td className="px-6 py-4 text-sm">{u.email}</td>
+                    <td className="px-6 py-4 text-sm">{u.username}</td>
+                    <td className="px-6 py-4 text-sm">{u.role}</td>
+                    <td className="px-6 py-4 text-sm">{u.is_active ? "✅" : "❌"}</td>
+                    <td className="px-6 py-4 text-sm">{u.is_superuser ? "✅" : "❌"}</td>
+                    <td className="px-6 py-4 text-right text-sm font-medium space-x-3">
+                      <button
+                        className="text-blue-600 hover:text-blue-900"
+                        onClick={() => setViewUser(u)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button
+                        className="text-gray-600 hover:text-gray-900"
+                        onClick={() => handleEdit(u)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        className="text-red-600 hover:text-red-900"
+                        onClick={() => handleDelete(u.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="text-center text-gray-500 py-6 text-sm"
-                  >
+                  <td colSpan={7} className="text-center text-gray-500 py-6 text-sm">
                     No users found
                   </td>
                 </tr>
@@ -305,7 +307,7 @@ const RecruitmentUser = () => {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-end space-x-2 mt-4">
+        <div className="flex items-center justify-between px-6 py-3 border-t bg-gray-50">
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((p) => p - 1)}
@@ -313,8 +315,8 @@ const RecruitmentUser = () => {
           >
             Prev
           </button>
-          <span className="px-3 py-1">
-            {currentPage} / {totalPages}
+          <span className="text-sm text-gray-600">
+            Page {currentPage} of {totalPages}
           </span>
           <button
             disabled={currentPage === totalPages}

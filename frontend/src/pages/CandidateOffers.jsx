@@ -5,6 +5,8 @@ import { candidatesAPI } from "../services/api"
 const CandidateOffers = () => {
   const [offers, setOffers] = useState([])
   const [previewUrl, setPreviewUrl] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchOffers = async () => {
     try {
@@ -34,6 +36,12 @@ const CandidateOffers = () => {
     }
   }
 
+  const totalPages = Math.ceil(offers.length / itemsPerPage);
+  const currentItems = offers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -45,35 +53,30 @@ const CandidateOffers = () => {
       </div>
 
       {/* Table */}
-      <div className="card overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Candidate
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Sent Date
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {offers.map((offer) => (
+      <div className="card relative bg-white shadow-md rounded-xl overflow-x-auto overflow-y-auto max-h-[500px]">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50 sticky top-0 z-10">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">S.No</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Candidate</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sent Date</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {currentItems.length > 0 ? (
+            currentItems.map((offer, index) => (
               <tr key={offer.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 text-sm text-gray-900">
+                  {(currentPage - 1) * itemsPerPage + index + 1}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {offer.candidate?.first_name} {offer.candidate?.last_name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
-                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                      offer.status
-                    )}`}
+                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(offer.status)}`}
                   >
                     {offer.status}
                   </span>
@@ -103,9 +106,37 @@ const CandidateOffers = () => {
                   </div>
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                No offers found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+
+      {/* ✅ Pagination Controls */}
+      <div className="flex items-center justify-between px-6 py-3 border-t bg-gray-50">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Prev
+        </button>
+        <span className="text-sm text-gray-600">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
       </div>
       {/* PDF Preview Modal */}
       {previewUrl && (

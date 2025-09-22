@@ -15,6 +15,8 @@ const Candidates = () => {
   const [selectedCity, setSelectedCity] = useState('all')
   const [selectedExperience, setSelectedExperience] = useState('all')
   const [selectedSkill, setSelectedSkill] = useState('all')
+  const [currentPage, setCurrentPage] = useState(1);
+  const candidatesPerPage = 10;
 
 
   const experienceOptions = [
@@ -145,6 +147,13 @@ const Candidates = () => {
       }
   };
 
+  // Pagination logic
+  const indexOfLast = currentPage * candidatesPerPage;
+  const indexOfFirst = indexOfLast - candidatesPerPage;
+  const currentCandidates = filteredCandidates.slice(indexOfFirst, indexOfLast);
+
+  const totalPages = Math.ceil(filteredCandidates.length / candidatesPerPage);
+
 
   return (
     <div className="space-y-6">
@@ -231,10 +240,11 @@ const Candidates = () => {
         </div>
       </div>
 
-      <div className="card overflow-x-auto">
+      <div className="card overflow-x-auto overflow-y-auto max-h-[75vh]">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">S.No.</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
@@ -247,8 +257,13 @@ const Candidates = () => {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {filteredCandidates.map((candidate) => (
+          {currentCandidates.map((candidate, index) => (
             <tr key={candidate.id} className="hover:bg-gray-50">
+              {/* ✅ Serial Number */}
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                {(currentPage - 1) * candidatesPerPage + index + 1}
+              </td>
+
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 {candidate.first_name} {candidate.last_name}
               </td>
@@ -263,57 +278,74 @@ const Candidates = () => {
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {new Date(candidate.created_at).toLocaleDateString('en-GB').replace(/\//g, '-')}
-                </td>
+                {new Date(candidate.created_at).toLocaleDateString("en-GB").replace(/\//g, "-")}
+              </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex items-center justify-end space-x-2">
-                    <button className="text-primary-600 hover:text-primary-900" onClick={() => handleViewClick(candidate)}>
-                      <Eye className="h-4 w-4" />
+                <div className="flex items-center justify-end space-x-2">
+                  <button className="text-primary-600 hover:text-primary-900" onClick={() => handleViewClick(candidate)}>
+                    <Eye className="h-4 w-4" />
+                  </button>
+                  <button className="text-gray-600 hover:text-gray-900" onClick={() => handleEditClick(candidate)}>
+                    <Edit className="h-4 w-4" />
+                  </button>
+                  <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClick(candidate.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                  <label className="cursor-pointer text-blue-600 hover:text-blue-900" title="Upload Resume">
+                    📄
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) => handleResumeUpload(candidate.id, e.target.files[0])}
+                      className="hidden"
+                    />
+                  </label>
+                  {candidate.resume_url && (
+                    <a
+                      href={candidate.resume_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-green-600 hover:text-green-900"
+                      title="Download Resume"
+                    >
+                      ⬇️
+                    </a>
+                  )}
+                  {candidate.status === "Shortlisted" && (
+                    <button
+                      className="bg-indigo-600 text-white px-3 py-1 rounded-md text-xs hover:bg-indigo-700"
+                      onClick={() => handleIssueOffer(candidate)}
+                    >
+                      Issue Offer
                     </button>
-                    <button className="text-gray-600 hover:text-gray-900" onClick={() => handleEditClick(candidate)}>
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClick(candidate.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                    {/* 👇 Upload resume input */}
-                    <label className="cursor-pointer text-blue-600 hover:text-blue-900">
-                      📄
-                      <input
-                        type="file"
-                        accept=".pdf,.doc,.docx"
-                        onChange={(e) => handleResumeUpload(candidate.id, e.target.files[0])}
-                        className="hidden"
-                      />
-                    </label>
-
-                    {candidate.resume_url && (
-                      <a
-                        href={candidate.resume_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-green-600 hover:text-green-900"
-                        title="Download Resume"
-                      >
-                        ⬇️
-                      </a>
-                    )}
-
-                    {candidate.status === 'Shortlisted' && (
-                      <button
-                        className="bg-indigo-600 text-white px-3 py-1 rounded-md text-xs hover:bg-indigo-700"
-                        onClick={() => handleIssueOffer(candidate)}
-                      >
-                        Issue Offer
-                      </button>
-                    )}
-                  </div>
-                </td>
-
+                  )}
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {/* ✅ Pagination Controls */}
+      <div className="flex justify-between items-center p-4">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className="px-3 py-1 text-sm bg-gray-200 rounded disabled:opacity-50"
+        >
+          Prev
+        </button>
+        <span className="text-sm">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 text-sm bg-gray-200 rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
       </div>
 
 

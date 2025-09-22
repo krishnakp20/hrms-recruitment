@@ -21,6 +21,10 @@ const RecruitmentAgencies = () => {
   const [editingId, setEditingId] = useState(null);
   const [viewAgency, setViewAgency] = useState(null);
   const [formErrors, setFormErrors] = useState({});
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
+
   // Validation helper
   const validateForm = () => {
     const errors = {};
@@ -222,6 +226,12 @@ const RecruitmentAgencies = () => {
     });
   };
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredAgencies.length / rowsPerPage);
+  const indexOfLast = currentPage * rowsPerPage;
+  const indexOfFirst = indexOfLast - rowsPerPage;
+  const currentAgencies = filteredAgencies.slice(indexOfFirst, indexOfLast);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -271,13 +281,16 @@ const RecruitmentAgencies = () => {
       </div>
 
       {/* Agencies Table */}
-      <div className="card overflow-x-auto">
+      <div className="card overflow-x-auto overflow-y-auto max-h-[500px]">
         {loading ? (
           <p className="p-4">Loading...</p>
         ) : (
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  S.No
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Name
                 </th>
@@ -293,60 +306,53 @@ const RecruitmentAgencies = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredAgencies.map((agency) => (
-                <tr key={agency.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {agency.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {/* <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                        agency.status
-                      )}`}
-                    >
-                      {agency.status}
-                    </span> */}
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                        agency.is_active
-                      )}`}
-                    >
-                      {agency.is_active ? "Active" : "Inactive"}
-                    </span>
-                  </td>
-                  {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {new Date(agency.created_date).toLocaleDateString("en-GB")}
-                  </td> */}
-                  {/* ✅ formatted date */}
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatDate(agency.created_at)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
-                    <button
-                      className="text-blue-600 hover:text-blue-900"
-                      onClick={() => setViewAgency(agency)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
-                    <button
-                      className="text-gray-600 hover:text-gray-900"
-                      onClick={() => handleEdit(agency)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <button
-                      className="text-red-600 hover:text-red-900"
-                      onClick={() => handleDelete(agency.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filteredAgencies.length === 0 && (
+              {currentAgencies.length > 0 ? (
+                currentAgencies.map((agency, index) => (
+                  <tr key={agency.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {(currentPage - 1) * rowsPerPage + index + 1}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {agency.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                          agency.is_active
+                        )}`}
+                      >
+                        {agency.is_active ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {formatDate(agency.created_at)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
+                      <button
+                        className="text-blue-600 hover:text-blue-900"
+                        onClick={() => setViewAgency(agency)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button
+                        className="text-gray-600 hover:text-gray-900"
+                        onClick={() => handleEdit(agency)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        className="text-red-600 hover:text-red-900"
+                        onClick={() => handleDelete(agency.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={5}
                     className="text-center text-gray-500 py-6 text-sm"
                   >
                     No agencies found
@@ -357,6 +363,29 @@ const RecruitmentAgencies = () => {
           </table>
         )}
       </div>
+
+      {/* Pagination controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-6 py-3 border-t bg-gray-50">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => p - 1)}
+            className="px-3 py-1 border rounded disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <span className="text-sm text-gray-600">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => p + 1)}
+            className="px-3 py-1 border rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {/* Modal Form */}
       {showForm && (

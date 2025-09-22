@@ -59,7 +59,7 @@ class Candidate(CandidateBase):
     first_name: str
     last_name: str
     email: str
-    experience_years: int
+    experience_years: Optional[int]
     phone: Optional[str] = None
     created_by: Optional[int] = None
     created_at: Optional[datetime] = None
