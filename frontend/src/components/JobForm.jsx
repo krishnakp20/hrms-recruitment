@@ -20,6 +20,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
     grade: '',
     department_id: '',
     sub_department: '',
+    branch: '',
     process: '',
     reporting_to_title: '',
     reporting_to_manager: '',
@@ -98,6 +99,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
         grade: editJob.grade || '',
         department_id: editJob.department_id || '',
         sub_department: editJob.sub_department || '',
+        branch: editJob.branch || '',
         process: editJob.process || '',
         reporting_to_title: editJob.reporting_to_title || '',
         reporting_to_manager: editJob.reporting_to_manager || '',
@@ -131,6 +133,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
     grade: '',
     department_id: '',
     sub_department: '',
+    branch: '',
     process: '',
     reporting_to_title: '',
     reporting_to_manager: '',
@@ -181,6 +184,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
         grade: formData.grade || null,
         department_id: formData.department_id,
         sub_department: formData.sub_department || null,
+        branch: formData.branch || null,
         process: formData.process || null,
         reporting_to_title: formData.reporting_to_title || null,
         reporting_to_manager: formData.reporting_to_manager || null,
@@ -436,7 +440,21 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
           </div>
 
           {/* Location and Type */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Branch
+                </label>
+                <input
+                  type="text"
+                  name="branch"
+                  value={formData.branch}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="e.g., Mumbai Branch"
+                />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Location Type

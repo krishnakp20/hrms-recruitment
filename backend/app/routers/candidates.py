@@ -22,6 +22,7 @@ from pathlib import Path
 from fastapi import Request
 from reportlab.lib.pagesizes import LETTER
 from reportlab.pdfgen import canvas
+from app.core.config import ALLOWED_ORIGINS
 
 
 router = APIRouter()
@@ -565,10 +566,11 @@ def accept_offer(offer_id: int, db: Session = Depends(get_db)):
 
 @router.get("/offers/all")
 def list_offers(request: Request, db: Session = Depends(get_db)):
-    base_url = str(request.base_url).rstrip("/")
+    base_url = ALLOWED_ORIGINS[0].rstrip("/")
     offers = (
         db.query(OfferLetter)
-        .options(joinedload(OfferLetter.candidate))  # fetch candidate details
+        .options(joinedload(OfferLetter.candidate))
+        .order_by(OfferLetter.id.desc())
         .all()
     )
 

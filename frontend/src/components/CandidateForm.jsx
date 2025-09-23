@@ -10,6 +10,7 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
     last_name: '',
     email: '',
     phone: '',
+    gender: '',
     location_state: '',
     location_city: '',
     location_area: '',
@@ -115,6 +116,21 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
               <input id="phone" name="phone" value={formData.phone} onChange={handleChange} className="input-field" />
+            </div>
+            <div>
+              <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+              <select
+                id="gender"
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                className="input-field"
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
             </div>
             <div>
               <label htmlFor="location_state" className="block text-sm font-medium text-gray-700 mb-1">State</label>

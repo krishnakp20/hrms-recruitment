@@ -23,6 +23,7 @@ const JobDetailsModal = ({ isOpen, onClose, job }) => {
           <div><strong>Grade:</strong> {job.grade || 'N/A'}</div>
           <div><strong>Department:</strong> {job.department?.name || 'N/A'}</div>
           <div><strong>Sub-Department:</strong> {job.sub_department || 'N/A'}</div>
+          <div><strong>Branch:</strong> {job.branch || 'N/A'}</div>
           <div><strong>Process:</strong> {job.process || 'N/A'}</div>
           <div><strong>Reporting Title:</strong> {job.reporting_to_title || 'N/A'}</div>
           <div><strong>Reporting Manager:</strong> {job.reporting_to_manager || 'N/A'}</div>

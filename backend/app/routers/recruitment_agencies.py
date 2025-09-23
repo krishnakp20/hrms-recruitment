@@ -69,6 +69,8 @@ from app.schemas.recruitment_agency import (
     RecruitmentAgencyRead,
     RecruitmentAgencyUpdate,
 )
+from app.models.user import UserRole
+from app.core.security import get_current_user
 
 router = APIRouter(
     prefix="/recruitment-agencies",
@@ -77,7 +79,9 @@ router = APIRouter(
 
 # Create
 @router.post("/", response_model=RecruitmentAgencyRead, status_code=status.HTTP_201_CREATED)
-def create_agency(payload: RecruitmentAgencyCreate, db: Session = Depends(get_db)):
+def create_agency(payload: RecruitmentAgencyCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
     agency = RecruitmentAgency(**payload.dict())
     db.add(agency)
     db.commit()
@@ -91,7 +95,9 @@ def get_agencies(db: Session = Depends(get_db)):
 
 # Read single
 @router.get("/{agency_id}", response_model=RecruitmentAgencyRead)
-def get_agency(agency_id: int, db: Session = Depends(get_db)):
+def get_agency(agency_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
     agency = db.query(RecruitmentAgency).filter(RecruitmentAgency.id == agency_id).first()
     if not agency:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Agency not found")
@@ -99,7 +105,9 @@ def get_agency(agency_id: int, db: Session = Depends(get_db)):
 
 # Update
 @router.put("/{agency_id}", response_model=RecruitmentAgencyRead)
-def update_agency(agency_id: int, payload: RecruitmentAgencyUpdate, db: Session = Depends(get_db)):
+def update_agency(agency_id: int, payload: RecruitmentAgencyUpdate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
     agency = db.query(RecruitmentAgency).filter(RecruitmentAgency.id == agency_id).first()
     if not agency:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Agency not found")
@@ -111,7 +119,9 @@ def update_agency(agency_id: int, payload: RecruitmentAgencyUpdate, db: Session 
 
 # Delete
 @router.delete("/{agency_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_agency(agency_id: int, db: Session = Depends(get_db)):
+def delete_agency(agency_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
     agency = db.query(RecruitmentAgency).filter(RecruitmentAgency.id == agency_id).first()
     if not agency:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Agency not found")

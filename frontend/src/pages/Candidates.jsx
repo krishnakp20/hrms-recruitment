@@ -16,6 +16,9 @@ const Candidates = () => {
   const [selectedExperience, setSelectedExperience] = useState('all')
   const [selectedSkill, setSelectedSkill] = useState('all')
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedGender, setSelectedGender] = useState('all')
+  const [selectedEducation, setSelectedEducation] = useState('all')
+
   const candidatesPerPage = 10;
 
 
@@ -45,6 +48,14 @@ const Candidates = () => {
       .filter(Boolean)
   )
 ]
+
+    const genderOptions = ['all', 'Male', 'Female', 'Other']
+
+    const educationOptions = [
+      'all',
+      ...new Set(candidates.map(c => c.education_qualification_short).filter(Boolean))
+    ]
+
 
   useEffect(() => {
     fetchCandidates()
@@ -103,6 +114,9 @@ const Candidates = () => {
     const matchesStatus = selectedStatus === 'all' || candidate.status === selectedStatus
     const matchesCity = selectedCity === 'all' || candidate.location_city === selectedCity
 
+    const matchesGender = selectedGender === 'all' || candidate.gender === selectedGender
+    const matchesEducation = selectedEducation === 'all' || candidate.education_qualification_short === selectedEducation
+
     let matchesExperience = true
     if (selectedExperience !== 'all') {
         const years = Number(candidate.experience_years || 0)
@@ -116,7 +130,7 @@ const Candidates = () => {
     (candidate.cover_letter &&
       candidate.cover_letter.split(',').map(s => s.trim()).includes(selectedSkill))
 
-    return matchesSearch && matchesStatus && matchesCity && matchesExperience && matchesSkill
+    return matchesSearch && matchesStatus && matchesCity && matchesGender && matchesEducation && matchesExperience && matchesSkill
   })
 
   const handleResumeUpload = async (candidateId, file) => {
@@ -201,6 +215,19 @@ const Candidates = () => {
           </div>
           <div className="sm:w-48">
               <select
+                value={selectedGender}
+                onChange={(e) => setSelectedGender(e.target.value)}
+                className="input-field"
+              >
+                {genderOptions.map(gender => (
+                  <option key={gender} value={gender}>
+                    {gender === 'all' ? 'All Genders' : gender}
+                  </option>
+                ))}
+              </select>
+          </div>
+          <div className="sm:w-48">
+              <select
                 value={selectedCity}
                 onChange={(e) => setSelectedCity(e.target.value)}
                 className="input-field"
@@ -208,6 +235,19 @@ const Candidates = () => {
                 {cityOptions.map(city => (
                   <option key={city} value={city}>
                     {city === 'all' ? 'All Cities' : city}
+                  </option>
+                ))}
+              </select>
+          </div>
+          <div className="sm:w-48">
+              <select
+                value={selectedEducation}
+                onChange={(e) => setSelectedEducation(e.target.value)}
+                className="input-field"
+              >
+                {educationOptions.map(edu => (
+                  <option key={edu} value={edu}>
+                    {edu === 'all' ? 'All Education' : edu}
                   </option>
                 ))}
               </select>
@@ -248,7 +288,9 @@ const Candidates = () => {
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gender</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">City</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Education</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Experience</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skills</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
@@ -269,7 +311,9 @@ const Candidates = () => {
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.email}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.phone}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.gender}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.location_city}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.education_qualification_short}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.experience_years} years</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.cover_letter}</td>
               <td className="px-6 py-4 whitespace-nowrap">

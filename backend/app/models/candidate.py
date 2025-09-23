@@ -22,6 +22,13 @@ class CandidateSource(str, enum.Enum):
     WHATSAPP = "WhatsApp"
     MANUAL_ENTRY = "Manual Entry"
 
+
+class Gender(str, enum.Enum):
+    Male = "Male"
+    Female = "Female"
+    Other = "Other"
+
+
 class Candidate(Base):
     __tablename__ = "candidates"
 
@@ -30,6 +37,7 @@ class Candidate(Base):
     last_name = Column(String(255), nullable=False)
     email = Column(String(255), nullable=False)
     phone = Column(String(20), nullable=False)
+    gender = Column(Enum(Gender), nullable=True)
     location_state = Column(String(255))
     location_city = Column(String(255))
     location_area = Column(String(255))

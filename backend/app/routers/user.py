@@ -179,6 +179,8 @@ from app.models.user import User as UserModel   # SQLAlchemy model
 from app.schemas.user import UserCreate, UserUpdate, User as UserSchema  # Pydantic schema
 from passlib.context import CryptContext
 from typing import List
+from app.models.user import UserRole
+from app.core.security import get_current_user
 
 router = APIRouter(
     prefix="/users",
@@ -193,7 +195,9 @@ def get_password_hash(password: str):
 
 # Create User
 @router.post("/", response_model=UserSchema)
-def create_user(user: UserCreate, db: Session = Depends(get_db)):
+def create_user(user: UserCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
     db_user = db.query(UserModel).filter(UserModel.email == user.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -216,11 +220,13 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 # Get All Users
 @router.get("/", response_model=List[UserSchema])
 def get_users(db: Session = Depends(get_db)):
-    return db.query(UserModel).all()
+    return db.query(UserModel).order_by(UserModel.id.desc()).all()
 
 # Get User by ID
 @router.get("/{user_id}", response_model=UserSchema)
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def get_user(user_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
     user = db.query(UserModel).filter(UserModel.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -228,7 +234,9 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 # Update User
 @router.put("/{user_id}", response_model=UserSchema)
-def update_user(user_id: int, user_update: UserUpdate, db: Session = Depends(get_db)):
+def update_user(user_id: int, user_update: UserUpdate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
     user = db.query(UserModel).filter(UserModel.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -246,7 +254,9 @@ def update_user(user_id: int, user_update: UserUpdate, db: Session = Depends(get
 
 # Delete User
 @router.delete("/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+def delete_user(user_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
     user = db.query(UserModel).filter(UserModel.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

@@ -390,7 +390,7 @@ async def get_departments(
         db: Session = Depends(get_db)
 ):
     """Get all departments"""
-    departments = db.query(DepartmentModel).offset(skip).all()
+    departments = db.query(DepartmentModel).order_by(DepartmentModel.id.desc()).offset(skip).all()
     return departments
 
 
@@ -486,7 +486,12 @@ def publish_job(job_id: int, db: Session = Depends(get_db), current_user = Depen
 @router.get("/public/careers", response_model=List[Job])
 def list_published_jobs(db: Session = Depends(get_db)):
 
-    jobs = (db.query(JobModel).filter(JobModel.is_published == True, JobModel.status == "Approved").all())
+    jobs = (
+        db.query(JobModel)
+        .order_by(JobModel.id.desc())
+        .filter(JobModel.is_published == True, JobModel.status == "Approved")
+        .all()
+    )
 
     return jobs
 

@@ -8,6 +8,7 @@ class CandidateBase(BaseModel):
     last_name: str
     email: str
     phone: str
+    gender: Optional[str] = None
     location_state: Optional[str] = None
     location_city: Optional[str] = None
     location_area: Optional[str] = None
@@ -35,6 +36,7 @@ class CandidateUpdate(BaseModel):
     last_name: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
+    gender: Optional[str] = None
     location_state: Optional[str] = None
     location_city: Optional[str] = None
     location_area: Optional[str] = None

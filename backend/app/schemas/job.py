@@ -32,6 +32,7 @@ class JobBase(BaseModel):
     grade: Optional[str] = None
     department_id: Optional[int] = None
     sub_department: Optional[str] = None
+    branch: Optional[str] = None
     process: Optional[str] = None
     reporting_to_title: Optional[str] = None
     reporting_to_manager: Optional[str] = None
@@ -64,6 +65,7 @@ class JobUpdate(BaseModel):
     grade: Optional[str] = None
     department_id: Optional[int] = None
     sub_department: Optional[str] = None
+    branch: Optional[str] = None
     process: Optional[str] = None
     reporting_to_title: Optional[str] = None
     reporting_to_manager: Optional[str] = None

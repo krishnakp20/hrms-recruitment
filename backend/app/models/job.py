@@ -37,6 +37,7 @@ class Job(Base):
     grade = Column(String(100))
     department_id = Column(Integer, ForeignKey("departments.id"))
     sub_department = Column(String(255))
+    branch = Column(String(255))
     process = Column(Text)
     reporting_to_title = Column(String(255))
     reporting_to_manager = Column(String(255))

@@ -10,12 +10,16 @@ from app.schemas.recruitment_workflow import (
     RecruitmentWorkflowOut,
 )
 import json
+from app.models.user import UserRole
+from app.core.security import get_current_user
 
 router = APIRouter(prefix="/workflow-templates", tags=["Workflow Templates"])
 
 # Create
 @router.post("/", response_model=RecruitmentWorkflowOut)
-def create_template(template: RecruitmentWorkflowCreate, db: Session = Depends(get_db)):
+def create_template(template: RecruitmentWorkflowCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
     try:
         steps_json = json.dumps(template.steps)
     except Exception:
@@ -35,11 +39,13 @@ def create_template(template: RecruitmentWorkflowCreate, db: Session = Depends(g
 # List
 @router.get("/", response_model=list[RecruitmentWorkflowOut])
 def list_templates(db: Session = Depends(get_db)):
-    return db.query(RecruitmentWorkflow).all()
+    return db.query(RecruitmentWorkflow).order_by(RecruitmentWorkflow.created_at.desc()).all()
 
 # Get by ID
 @router.get("/{template_id}", response_model=RecruitmentWorkflowOut)
-def get_template(template_id: int, db: Session = Depends(get_db)):
+def get_template(template_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
     db_template = db.query(RecruitmentWorkflow).filter(RecruitmentWorkflow.id == template_id).first()
     if not db_template:
         raise HTTPException(status_code=404, detail="Template not found")
@@ -47,7 +53,9 @@ def get_template(template_id: int, db: Session = Depends(get_db)):
 
 # Update
 @router.put("/{template_id}", response_model=RecruitmentWorkflowOut)
-def update_template(template_id: int, updated: RecruitmentWorkflowUpdate, db: Session = Depends(get_db)):
+def update_template(template_id: int, updated: RecruitmentWorkflowUpdate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
     db_template = db.query(RecruitmentWorkflow).filter(RecruitmentWorkflow.id == template_id).first()
     if not db_template:
         raise HTTPException(status_code=404, detail="Template not found")
@@ -70,7 +78,9 @@ def update_template(template_id: int, updated: RecruitmentWorkflowUpdate, db: Se
 
 # Delete
 @router.delete("/{template_id}")
-def delete_template(template_id: int, db: Session = Depends(get_db)):
+def delete_template(template_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
     db_template = db.query(RecruitmentWorkflow).filter(RecruitmentWorkflow.id == template_id).first()
     if not db_template:
         raise HTTPException(status_code=404, detail="Template not found")

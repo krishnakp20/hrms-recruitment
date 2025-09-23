@@ -26,6 +26,7 @@ const CandidateView = ({ isOpen, onClose, candidate }) => {
               <p><strong>Last Name:</strong> {candidate.last_name}</p>
               <p><strong>Email:</strong> {candidate.email}</p>
               <p><strong>Phone:</strong> {candidate.phone}</p>
+              <p><strong>Gender:</strong> {candidate.gender}</p>
             </div>
           </div>
 
