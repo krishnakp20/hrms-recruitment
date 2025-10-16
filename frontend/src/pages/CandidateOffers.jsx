@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react"
-import { Eye, Download, X } from "lucide-react"
+import { Download } from "lucide-react"
 import { candidatesAPI } from "../services/api"
 
 const CandidateOffers = () => {
   const [offers, setOffers] = useState([])
-  const [previewUrl, setPreviewUrl] = useState(null)
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+
+  const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"
 
   const fetchOffers = async () => {
     try {
@@ -36,11 +37,11 @@ const CandidateOffers = () => {
     }
   }
 
-  const totalPages = Math.ceil(offers.length / itemsPerPage);
+  const totalPages = Math.ceil(offers.length / itemsPerPage)
   const currentItems = offers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
-  );
+  )
 
   return (
     <div className="space-y-6">
@@ -54,48 +55,42 @@ const CandidateOffers = () => {
 
       {/* Table */}
       <div className="card relative bg-white shadow-md rounded-xl overflow-x-auto overflow-y-auto max-h-[500px]">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50 sticky top-0 z-10">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">S.No</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Candidate</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sent Date</th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {currentItems.length > 0 ? (
-            currentItems.map((offer, index) => (
-              <tr key={offer.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm text-gray-900">
-                  {(currentPage - 1) * itemsPerPage + index + 1}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {offer.candidate?.first_name} {offer.candidate?.last_name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(offer.status)}`}
-                  >
-                    {offer.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {offer.sent_at
-                    ? new Date(offer.sent_at).toLocaleDateString("en-GB").replace(/\//g, "-")
-                    : "-"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex items-center justify-end space-x-2">
-                    <button
-                      className="text-primary-600 hover:text-primary-900"
-                      onClick={() => setPreviewUrl(offer.file_path)}
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50 sticky top-0 z-10">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">S.No</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Candidate</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sent Date</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {currentItems.length > 0 ? (
+              currentItems.map((offer, index) => (
+                <tr key={offer.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {(currentPage - 1) * itemsPerPage + index + 1}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {offer.candidate?.first_name} {offer.candidate?.last_name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(offer.status)}`}
                     >
-                      <Eye className="h-4 w-4" />
-                    </button>
+                      {offer.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {offer.sent_at
+                      ? new Date(offer.sent_at).toLocaleDateString("en-GB").replace(/\//g, "-")
+                      : "-"}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex items-center justify-end space-x-2">
                     <a
-                      href={offer.file_path}
+                      href={`${BACKEND_URL}/candidates/offers/${offer.id}/download`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-green-600 hover:text-green-900"
@@ -103,64 +98,41 @@ const CandidateOffers = () => {
                     >
                       <Download className="h-4 w-4" />
                     </a>
-                  </div>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                  No offers found.
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
-                No offers found.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            )}
+          </tbody>
+        </table>
 
-      {/* ✅ Pagination Controls */}
-      <div className="flex items-center justify-between px-6 py-3 border-t bg-gray-50">
-        <button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-          className="px-3 py-1 border rounded disabled:opacity-50"
-        >
-          Prev
-        </button>
-        <span className="text-sm text-gray-600">
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-          disabled={currentPage === totalPages}
-          className="px-3 py-1 border rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
-      </div>
-      {/* PDF Preview Modal */}
-      {previewUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-          <div className="bg-white w-11/12 h-5/6 rounded-2xl shadow-lg flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-2 border-b">
-              <h2 className="text-lg font-semibold">Offer Preview</h2>
-              <button
-                onClick={() => setPreviewUrl(null)}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            {/* PDF Iframe */}
-            <iframe
-              src={previewUrl}
-              title="Offer Preview"
-              className="flex-1 w-full"
-            />
-          </div>
+        {/* Pagination Controls */}
+        <div className="flex items-center justify-between px-6 py-3 border-t bg-gray-50">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 border rounded disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <span className="text-sm text-gray-600">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 border rounded disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
-      )}
+      </div>
     </div>
   )
 }

@@ -29,7 +29,7 @@ const Dashboard = () => {
         // Fallback to default data if API fails
         setStats([
           {
-            name: 'Total Employees',
+            name: 'Total Candidates',
             value: '0',
             change: '+0%',
             changeType: 'positive',
@@ -182,8 +182,8 @@ const Dashboard = () => {
               Applications
             </Link>
 
-            <Link to="/bank-questions/create" className="w-full btn-secondary block text-center">
-              Add Bank Question
+            <Link to="/interview/questions" className="w-full btn-secondary block text-center">
+              Add Interview Question
             </Link>
             <Link to="/offers" className="w-full btn-secondary block text-center">
               Candidate Offers

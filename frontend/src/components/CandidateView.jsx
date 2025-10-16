@@ -54,10 +54,13 @@ const CandidateView = ({ isOpen, onClose, candidate }) => {
 
           {/* Qualification */}
           <div>
-            <h3 className="text-gray-600 font-semibold mb-2">Education</h3>
+            <h3 className="text-gray-600 font-semibold mb-2">Education & Designation</h3>
             <div className="space-y-1">
               <p><strong>Qualification:</strong> {candidate.education_qualification_short}</p>
               <p className="text-gray-700">{candidate.education_qualification_detailed}</p>
+            </div>
+            <div className="space-y-1">
+              <p><strong>Designation:</strong> {candidate.designation}</p>
             </div>
           </div>
 

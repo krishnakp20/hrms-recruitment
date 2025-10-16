@@ -27,6 +27,8 @@ from app.core.config import ALLOWED_ORIGINS
 
 router = APIRouter()
 
+OFFER_DIR = Path("offers")
+
 # Candidate Management Endpoints
 @router.get("/", response_model=List[Candidate])
 async def get_candidates(
@@ -494,26 +496,19 @@ async def download_template():
 
 
 
-OFFER_DIR = Path("offers")
-OFFER_DIR.mkdir(exist_ok=True)
-
 def generate_offer_pdf(candidate):
-    """
-    Stub: generate a simple text-based PDF file for the candidate offer.
-    Replace with ReportLab or Jinja2+WeasyPrint for real templates.
-    """
     file_name = f"offer_{candidate.id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.pdf"
     file_path = OFFER_DIR / file_name
 
-    # ✅ Use ReportLab to create a valid PDF
     c = canvas.Canvas(str(file_path), pagesize=LETTER)
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(200, 750, "OFFER LETTER")
     c.setFont("Helvetica", 12)
-    c.drawString(100, 750, f"Offer Letter")
-    c.drawString(100, 730, f"Candidate: {candidate.first_name} {candidate.last_name}")
-    c.drawString(100, 710, f"Position: TBD")
-    c.drawString(100, 690, f"Date: {datetime.utcnow().date()}")
+    c.drawString(100, 700, f"Candidate: {candidate.first_name} {candidate.last_name}")
+    c.drawString(100, 680, f"Date: {datetime.utcnow().strftime('%d-%m-%Y')}")
     c.save()
 
+    # Return static URL path (relative to FastAPI mount)
     return f"/offers/{file_name}"
 
 
@@ -546,6 +541,22 @@ def issue_offer(candidate_id: int, db: Session = Depends(get_db)):
     return {"message": "Offer issued", "offer_id": offer.id}
 
 
+@router.get("/offers/{offer_id}/download")
+def download_offer(offer_id: int, db: Session = Depends(get_db)):
+    # Fetch the offer from DB
+    offer = db.query(OfferLetter).filter(OfferLetter.id == offer_id).first()
+    if not offer:
+        raise HTTPException(status_code=404, detail="Offer not found")
+
+    # Construct file path
+    file_path = OFFER_DIR / Path(offer.file_path).name
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+
+    # Return file as attachment
+    return FileResponse(path=file_path, filename=file_path.name, media_type='application/pdf')
+
+
 @router.post("/offers/{offer_id}/accept")
 def accept_offer(offer_id: int, db: Session = Depends(get_db)):
     offer = db.query(OfferLetter).get(offer_id)
@@ -566,7 +577,7 @@ def accept_offer(offer_id: int, db: Session = Depends(get_db)):
 
 @router.get("/offers/all")
 def list_offers(request: Request, db: Session = Depends(get_db)):
-    base_url = ALLOWED_ORIGINS[0].rstrip("/")
+    base_url = ALLOWED_ORIGINS[0] if ALLOWED_ORIGINS else "http://localhost:3000"
     offers = (
         db.query(OfferLetter)
         .options(joinedload(OfferLetter.candidate))

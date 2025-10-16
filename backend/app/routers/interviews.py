@@ -144,7 +144,7 @@ def submit_round(interview_id: int, round_type: RoundType, answers: List[AnswerS
             interview.final_pct = sum(r.result_pct for r in all_rounds) / len(all_rounds)
             candidate.status = CandidateStatus.INTERVIEWED
 
-            if interview.final_pct >= 60.0:
+            if interview.final_pct >= 6.0:
                 candidate.status = CandidateStatus.SHORTLISTED
 
 

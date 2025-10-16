@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react'
 import { Search, Eye, Edit, Trash2 } from 'lucide-react'
 import { applicationsAPI } from '../services/api'  // ✅ new API service
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from "../contexts/AuthContext";
+import api from "../services/api";
 
 const Applications = () => {
   const navigate = useNavigate()
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [applications, setApplications] = useState([])
@@ -13,6 +16,11 @@ const Applications = () => {
   const [rowsPerPage] = useState(10)
 
   const statuses = ['all', 'Applied', 'Shortlisted', 'Interviewed', 'Rejected', 'Hired']
+
+  const [openRoundPickerFor, setOpenRoundPickerFor] = useState(null); // tracks which application row opened the dropdown
+  const [roundOptions, setRoundOptions] = useState([]); // stores rounds fetched from API
+  const [selectedRounds, setSelectedRounds] = useState({}); // remembers last selected round per job
+
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -41,6 +49,71 @@ const Applications = () => {
   useEffect(() => {
     fetchApplications()
   }, [])
+
+
+
+  const handleStartInterview = async (application) => {
+    try {
+      // Get round_id dynamically for the given job/application
+      const roundRes = await api.get(`/interview-rounds/job/${application.job.id}`);
+      const rounds = roundRes.data;
+
+      if (!rounds.length) {
+        alert("No interview rounds found for this job.");
+        return;
+      }
+
+      // You can either auto-select the first round or ask the user to pick
+      const roundId = rounds[0].id; // For now, take the first round
+
+      const interviewerId = user?.id; // From AuthContext
+
+      if (!interviewerId) {
+        alert("Unable to identify interviewer. Please log in again.");
+        return;
+      }
+
+      // Start or fetch the interview session
+      const res = await api.post("/interview-sessions/start", {
+        application_id: application.id,
+        round_id: roundId,
+        interviewer_id: interviewerId,
+      });
+
+      // Navigate to the interview page for this session
+      navigate(`/interviews/session/${res.data.id}`);
+    } catch (err) {
+      console.error("Error starting interview:", err);
+      alert("Failed to start interview session");
+    }
+  };
+
+
+  const handleOpenRoundPicker = async (application) => {
+      try {
+        const res = await api.get(`/interview-rounds/job/${application.job.id}`);
+        const rounds = res.data;
+
+        if (!rounds.length) {
+          alert("No interview rounds found for this job.");
+          return;
+        }
+
+        setRoundOptions(rounds);
+        setOpenRoundPickerFor(application.id);
+
+        // Pre-select the last chosen round or default to the first
+        setSelectedRounds((prev) => ({
+          ...prev,
+          [application.id]: prev[application.id] || rounds[0].id,
+        }));
+      } catch (err) {
+        console.error("Error fetching rounds:", err);
+        alert("Failed to fetch interview rounds");
+      }
+  };
+
+
 
   const filteredApplications = applications.filter(application => {
     const matchesSearch =
@@ -99,7 +172,7 @@ const Applications = () => {
       {/* Table */}
       <div className="card overflow-x-auto overflow-y-auto max-h-[70vh]">
       <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50 sticky top-0 z-10">
+        <thead className="bg-gray-50 top-0 z-10">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">S.No.</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Candidate</th>
@@ -150,15 +223,66 @@ const Applications = () => {
                 </td>
 
                 <td className="px-6 py-4 text-right text-sm font-medium">
-                  <div className="flex items-center justify-end space-x-2">
-                    <button
-                      onClick={() => navigate(`/interviews/${application.id}`)}
-                      className="px-3 py-1 bg-indigo-600 text-white rounded"
-                    >
-                      Start Interview
-                    </button>
+                  <div className="flex items-center justify-end space-x-2 relative">
+                    {openRoundPickerFor === application.id ? (
+                      <div className="flex gap-2 items-center">
+                        <select
+                          className="input-field"
+                          value={selectedRounds[application.id] || ""}
+                          onChange={(e) =>
+                            setSelectedRounds((prev) => ({
+                              ...prev,
+                              [application.id]: e.target.value,
+                            }))
+                          }
+                        >
+                          {roundOptions.map((r) => (
+                            <option key={r.id} value={r.id}>{r.name}</option>
+                          ))}
+                        </select>
+
+                        <button
+                          className="btn-primary px-2 py-1"
+                          onClick={async () => {
+                            const roundId = selectedRounds[application.id];
+                            if (!roundId) return alert("Please select a round");
+
+                            try {
+                              const res = await api.post("/interview-sessions/start", {
+                                application_id: application.id,
+                                round_id: roundId,
+                                interviewer_id: user.id,
+                              });
+                              navigate(`/interviews/session/${res.data.id}`);
+                            } catch (err) {
+                              console.error(err);
+                              alert("Failed to start interview session");
+                            } finally {
+                              setOpenRoundPickerFor(null);
+                            }
+                          }}
+                        >
+                          Start
+                        </button>
+
+                        <button
+                          className="btn-secondary px-2 py-1"
+                          onClick={() => setOpenRoundPickerFor(null)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleOpenRoundPicker(application)}
+                        className="px-3 py-1 bg-indigo-600 text-white rounded"
+                      >
+                        Start Interview
+                      </button>
+                    )}
                   </div>
                 </td>
+
               </tr>
             ))
           )}

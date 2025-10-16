@@ -20,7 +20,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
     grade: '',
     department_id: '',
     sub_department: '',
-    branch: '',
+    branch: 'Trapezoid Noida',
     process: '',
     reporting_to_title: '',
     reporting_to_manager: '',
@@ -29,7 +29,6 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
     required_skills: '',
     experience_level: '',
     job_description: '',
-    job_specification: '',
     number_of_vacancies: 1,
     compensation_min: '',
     compensation_max: '',
@@ -99,7 +98,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
         grade: editJob.grade || '',
         department_id: editJob.department_id || '',
         sub_department: editJob.sub_department || '',
-        branch: editJob.branch || '',
+        branch: editJob.branch || 'Trapezoid Noida',
         process: editJob.process || '',
         reporting_to_title: editJob.reporting_to_title || '',
         reporting_to_manager: editJob.reporting_to_manager || '',
@@ -108,7 +107,6 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
         required_skills: editJob.required_skills || '',
         experience_level: editJob.experience_level || '',
         job_description: editJob.job_description || '',
-        job_specification: editJob.job_specification || '',
         number_of_vacancies: editJob.number_of_vacancies || 1,
         compensation_min: editJob.compensation_min || '',
         compensation_max: editJob.compensation_max || '',
@@ -133,7 +131,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
     grade: '',
     department_id: '',
     sub_department: '',
-    branch: '',
+    branch: 'Trapezoid Noida',
     process: '',
     reporting_to_title: '',
     reporting_to_manager: '',
@@ -142,7 +140,6 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
     required_skills: '',
     experience_level: '',
     job_description: '',
-    job_specification: '',
     number_of_vacancies: 1,
     compensation_min: '',
     compensation_max: '',
@@ -184,7 +181,6 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
         grade: formData.grade || null,
         department_id: formData.department_id,
         sub_department: formData.sub_department || null,
-        branch: formData.branch || null,
         process: formData.process || null,
         reporting_to_title: formData.reporting_to_title || null,
         reporting_to_manager: formData.reporting_to_manager || null,
@@ -192,7 +188,6 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
         required_skills: formData.required_skills || null,
         experience_level: formData.experience_level || null,
         job_description: formData.job_description || null,
-        job_specification: formData.job_specification || null,
         number_of_vacancies: parseInt(formData.number_of_vacancies) || 1,
         compensation_min: formData.compensation_min ? parseInt(formData.compensation_min) : null,
         compensation_max: formData.compensation_max ? parseInt(formData.compensation_max) : null,
@@ -348,7 +343,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
                 value={formData.grade}
                 onChange={handleChange}
                 className="input-field"
-                placeholder="e.g., G5"
+                placeholder="e.g., E1"
               />
             </div>
           </div>
@@ -445,14 +440,17 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Branch
                 </label>
-                <input
-                  type="text"
+                <select
                   name="branch"
                   value={formData.branch}
                   onChange={handleChange}
                   className="input-field"
-                  placeholder="e.g., Mumbai Branch"
-                />
+                >
+                  <option value="Trapezoid Noida">Trapezoid Noida</option>
+                  <option value="Okaya Noida">Okaya Noida</option>
+                  <option value="Neelkanth Ahmedabad">Neelkanth Ahmedabad</option>
+                  <option value="Jaldarshan Ahmedabad">Jaldarshan Ahmedabad</option>
+                </select>
             </div>
 
             <div>
@@ -611,21 +609,6 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
             />
           </div>
 
-          {/* Job Specification */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Job Specification
-            </label>
-            <textarea
-              name="job_specification"
-              value={formData.job_specification}
-              onChange={handleChange}
-              rows="4"
-              className="input-field"
-              placeholder="Detailed job specifications..."
-            />
-          </div>
-
           {/* Reporting Structure */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -644,7 +627,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Reporting To Manager
+                Name of Reporting Manager
               </label>
               <input
                 type="text"

@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, date
-from app.models.job import JobStatus, JobType, LocationType
+from app.models.job import JobStatus, JobType, LocationType, Branch
 from app.models.interview import RoundType
 from .user import User
 
@@ -32,7 +32,7 @@ class JobBase(BaseModel):
     grade: Optional[str] = None
     department_id: Optional[int] = None
     sub_department: Optional[str] = None
-    branch: Optional[str] = None
+    branch: Branch = Branch.TRAPEZOID_NOIDA
     process: Optional[str] = None
     reporting_to_title: Optional[str] = None
     reporting_to_manager: Optional[str] = None
@@ -41,7 +41,6 @@ class JobBase(BaseModel):
     required_skills: Optional[str] = None
     experience_level: Optional[str] = None
     job_description: Optional[str] = None
-    job_specification: Optional[str] = None
     number_of_vacancies: int = 1
     compensation_min: Optional[int] = None
     compensation_max: Optional[int] = None
@@ -65,7 +64,7 @@ class JobUpdate(BaseModel):
     grade: Optional[str] = None
     department_id: Optional[int] = None
     sub_department: Optional[str] = None
-    branch: Optional[str] = None
+    branch: Optional[Branch] = None
     process: Optional[str] = None
     reporting_to_title: Optional[str] = None
     reporting_to_manager: Optional[str] = None
@@ -74,7 +73,6 @@ class JobUpdate(BaseModel):
     required_skills: Optional[str] = None
     experience_level: Optional[str] = None
     job_description: Optional[str] = None
-    job_specification: Optional[str] = None
     number_of_vacancies: Optional[int] = None
     compensation_min: Optional[int] = None
     compensation_max: Optional[int] = None

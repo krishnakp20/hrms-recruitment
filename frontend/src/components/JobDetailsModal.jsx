@@ -48,11 +48,6 @@ const JobDetailsModal = ({ isOpen, onClose, job }) => {
           <h3 className="text-lg font-semibold border-b pb-1 mb-2">Description</h3>
           <p className="text-gray-700 whitespace-pre-wrap">{job.job_description || 'N/A'}</p>
         </div>
-
-        <div>
-          <h3 className="text-lg font-semibold border-b pb-1 mb-2">Specification</h3>
-          <p className="text-gray-700 whitespace-pre-wrap">{job.job_specification || 'N/A'}</p>
-        </div>
       </div>
     </div>
   )

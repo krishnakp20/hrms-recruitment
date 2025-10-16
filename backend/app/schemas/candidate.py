@@ -20,6 +20,7 @@ class CandidateBase(BaseModel):
     notice_period: Optional[int] = None
     current_compensation: Optional[int] = None
     expected_compensation: Optional[int] = None
+    designation: Optional[str] = None
     resume_url: Optional[str] = None
     cover_letter: Optional[str] = None
     source: CandidateSource = CandidateSource.MANUAL_ENTRY
@@ -48,6 +49,7 @@ class CandidateUpdate(BaseModel):
     notice_period: Optional[int] = None
     current_compensation: Optional[int] = None
     expected_compensation: Optional[int] = None
+    designation: Optional[str] = None
     resume_url: Optional[str] = None
     cover_letter: Optional[str] = None
     source: Optional[CandidateSource] = None

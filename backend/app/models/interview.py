@@ -67,7 +67,7 @@ class InterviewAnswer(Base):
     __tablename__ = "interview_answers"
     id = Column(Integer, primary_key=True, index=True)
     round_id = Column(Integer, ForeignKey("interview_rounds.id"), nullable=False)
-    question_id = Column(Integer, ForeignKey("questions.id"), nullable=False)
+    question_id = Column(Integer, ForeignKey("question_bank.id"), nullable=False)
     score = Column(Float, default=0.0)   # % score for this question
     remarks = Column(Text)
     round = relationship("InterviewRound", back_populates="answers")

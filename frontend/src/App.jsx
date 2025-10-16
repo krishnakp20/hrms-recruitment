@@ -19,6 +19,8 @@ import BankQuestionsPage from './pages/BankQuestionsPage'
 import CandidateOffers from './pages/CandidateOffers'
 import RecruitmentUser from "./pages/RecruitmentUser";
 import DepartmentPage from "./pages/DepartmentPage";
+import InterviewQuestionsPage from "./pages/InterviewQuestionsPage";
+import InterviewConductPage from "./pages/InterviewConductPage";
 
 function App() {
   return (
@@ -60,6 +62,8 @@ function App() {
             <Route path="/offers" element={<CandidateOffers />} />
             <Route path="/users" element={<RecruitmentUser />} />
             <Route path="/department" element={<DepartmentPage />} />
+            <Route path="/interview/questions" element={<InterviewQuestionsPage />} />
+            <Route path="/interviews/session/:sessionId" element={<InterviewConductPage />} />
           </Route>
         </Routes>
       </div>

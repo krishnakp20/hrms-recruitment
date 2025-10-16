@@ -27,6 +27,13 @@ class LocationType(str, enum.Enum):
     REMOTE = "remote"
     HYBRID = "hybrid"
 
+class Branch(enum.Enum):
+    TRAPEZOID_NOIDA = "Trapezoid Noida"
+    OKAYA_NOIDA = "Okaya Noida"
+    NEELKANTH_AHMEDABAD = "Neelkanth Ahmedabad"
+    JALDARSHAN_AHMEDABAD = "Jaldarshan Ahmedabad"
+
+
 class Job(Base):
     __tablename__ = "jobs"
 
@@ -37,7 +44,7 @@ class Job(Base):
     grade = Column(String(100))
     department_id = Column(Integer, ForeignKey("departments.id"))
     sub_department = Column(String(255))
-    branch = Column(String(255))
+    branch = Column(Enum(Branch), nullable=True)
     process = Column(Text)
     reporting_to_title = Column(String(255))
     reporting_to_manager = Column(String(255))

@@ -47,7 +47,7 @@ async def get_dashboard_stats(
         
         return [
             {
-                "name": "Total Employees",
+                "name": "Total Candidates",
                 "value": str(total_candidates),
                 "change": candidates_change,
                 "changeType": "positive",

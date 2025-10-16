@@ -22,6 +22,7 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
     notice_period: '',
     current_compensation: '',
     expected_compensation: '',
+    designation: '',
     resume_url: '',
     cover_letter: '',
     source: 'Manual Entry',
@@ -50,34 +51,60 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+      e.preventDefault()
+      setLoading(true)
+      setError('')
 
-    try {
-      const cleanedData = {
-        ...formData,
-        experience_years: parseInt(formData.experience_years) || 0,
-        notice_period: parseInt(formData.notice_period) || 0,
-        current_compensation: parseInt(formData.current_compensation) || 0,
-        expected_compensation: parseInt(formData.expected_compensation) || 0,
+      // Required fields
+      const requiredFields = [
+        { name: 'first_name', label: 'First Name' },
+        { name: 'last_name', label: 'Last Name' },
+        { name: 'email', label: 'Email' },
+        { name: 'phone', label: 'Phone' },
+        { name: 'gender', label: 'Gender' },
+        { name: 'location_city', label: 'City' },
+        { name: 'education_qualification_short', label: 'Education Qualification (Short)' },
+        { name: 'experience_years', label: 'Experience (Years)' },
+        { name: 'cover_letter', label: 'Skills' },
+      ];
+
+      // Check for empty required fields
+      const emptyField = requiredFields.find(field => {
+        const value = formData[field.name];
+        return value === '' || value === null || value === undefined;
+      });
+
+      if (emptyField) {
+        setError(`${emptyField.label} is required`);
+        setLoading(false);
+        return;
       }
 
-      if (editCandidate) {
-        await candidatesAPI.update(editCandidate.id, cleanedData)
-      } else {
-        await candidatesAPI.create(cleanedData)
-      }
+      try {
+        const cleanedData = {
+          ...formData,
+          experience_years: parseInt(formData.experience_years) || 0,
+          notice_period: parseInt(formData.notice_period) || 0,
+          current_compensation: parseInt(formData.current_compensation) || 0,
+          expected_compensation: parseInt(formData.expected_compensation) || 0,
+        }
 
-      onSuccess()
-      onClose()
-    } catch (err) {
-      console.error('Error saving candidate:', err)
-      setError(err.response?.data?.detail || 'Failed to save candidate')
-    } finally {
-      setLoading(false)
-    }
+        if (editCandidate) {
+          await candidatesAPI.update(editCandidate.id, cleanedData)
+        } else {
+          await candidatesAPI.create(cleanedData)
+        }
+
+        onSuccess()
+        onClose()
+      } catch (err) {
+        console.error('Error saving candidate:', err)
+        setError(err.response?.data?.detail || 'Failed to save candidate')
+      } finally {
+        setLoading(false)
+      }
   }
+
 
   if (!isOpen) return null
 
@@ -147,6 +174,10 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
             <div>
               <label htmlFor="location_pincode" className="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
               <input id="location_pincode" name="location_pincode" value={formData.location_pincode} onChange={handleChange} className="input-field" />
+            </div>
+            <div>
+              <label htmlFor="designation" className="block text-sm font-medium text-gray-700 mb-1">Designation</label>
+              <input id="designation" name="designation" value={formData.designation} onChange={handleChange} className="input-field" />
             </div>
           </div>
 

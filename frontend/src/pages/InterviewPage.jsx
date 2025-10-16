@@ -130,9 +130,10 @@ const InterviewPage = () => {
           questions.map((q) => (
             <div key={q.id} className="space-y-2">
               <p className="font-medium">{q.text}</p>
+              <p className="font-medium">Weightage: {q.weight}</p>
               <input
                 type="number"
-                placeholder="Score (0-100)"
+                placeholder="Score (0-10)"
                 value={answers[q.id]?.score || ""}
                 onChange={(e) => handleChange(q.id, "score", e.target.value)}
                 className="input-field w-32"

@@ -31,7 +31,7 @@ const Layout = () => {
     { name: "Jobs", href: "/jobs", icon: Briefcase },
     { name: "Candidates", href: "/candidates", icon: UserPlus },
     { name: "Applications", href: "/applications", icon: FileText },
-    { name: "Create Bank Question", href: "/bank-questions/create", icon: HelpCircle },
+    { name: "Interview Bank Question", href: "/interview/questions", icon: HelpCircle },
     { name: "Candidate Offers", href: "/offers", icon: FileSignature },
     { name: "Internal Careers", href: "/careers", icon: Briefcase },
 

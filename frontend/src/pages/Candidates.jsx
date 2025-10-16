@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Plus, Search, Eye, Edit, Trash2, Phone, Mail } from 'lucide-react'
 import CandidateForm from '../components/CandidateForm'
 import { candidatesAPI } from '../services/api'
@@ -18,6 +18,7 @@ const Candidates = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedGender, setSelectedGender] = useState('all')
   const [selectedEducation, setSelectedEducation] = useState('all')
+  const [sortOrder, setSortOrder] = useState('desc');
 
   const candidatesPerPage = 10;
 
@@ -38,23 +39,24 @@ const Candidates = () => {
     }
   }
 
-  const cityOptions = ['all', ...new Set(candidates.map(c => c.location_city).filter(Boolean))]
+  const cityOptions = useMemo(() => {
+      return ['all', ...Array.from(new Set(candidates.map(c => c.location_city?.trim()).filter(Boolean)))]
+  }, [candidates])
 
-  const skillOptions = [
-  'all',
-  ...new Set(
-    candidates
-      .flatMap(c => (c.cover_letter ? c.cover_letter.split(',').map(s => s.trim()) : []))
-      .filter(Boolean)
-  )
-]
+  const skillOptions = useMemo(() => {
+      const skills = candidates.flatMap(c =>
+        c.cover_letter
+          ? c.cover_letter.split(',').map(s => s.trim())
+          : []
+      )
+      return ['all', ...Array.from(new Set(skills.filter(Boolean)))]
+  }, [candidates])
 
-    const genderOptions = ['all', 'Male', 'Female', 'Other']
+  const genderOptions = ['all', 'Male', 'Female', 'Other']
 
-    const educationOptions = [
-      'all',
-      ...new Set(candidates.map(c => c.education_qualification_short).filter(Boolean))
-    ]
+  const educationOptions = useMemo(() => {
+      return ['all', ...Array.from(new Set(candidates.map(c => c.education_qualification_short?.trim()).filter(Boolean)))]
+  }, [candidates])
 
 
   useEffect(() => {
@@ -133,6 +135,18 @@ const Candidates = () => {
     return matchesSearch && matchesStatus && matchesCity && matchesGender && matchesEducation && matchesExperience && matchesSkill
   })
 
+
+
+  const sortedCandidates = useMemo(() => {
+      const candidatesCopy = [...filteredCandidates];
+      candidatesCopy.sort((a, b) => {
+        const dateA = new Date(a.created_at);
+        const dateB = new Date(b.created_at);
+        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+      });
+      return candidatesCopy;
+  }, [filteredCandidates, sortOrder]);
+
   const handleResumeUpload = async (candidateId, file) => {
   if (!file) return
   const formData = new FormData()
@@ -164,9 +178,9 @@ const Candidates = () => {
   // Pagination logic
   const indexOfLast = currentPage * candidatesPerPage;
   const indexOfFirst = indexOfLast - candidatesPerPage;
-  const currentCandidates = filteredCandidates.slice(indexOfFirst, indexOfLast);
+  const currentCandidates = sortedCandidates.slice(indexOfFirst, indexOfLast);
 
-  const totalPages = Math.ceil(filteredCandidates.length / candidatesPerPage);
+  const totalPages = Math.ceil(sortedCandidates.length / candidatesPerPage);
 
 
   return (
@@ -275,6 +289,16 @@ const Candidates = () => {
                     {skill === 'all' ? 'All Skills' : skill}
                   </option>
                 ))}
+              </select>
+          </div>
+          <div className="sm:w-48">
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="input-field"
+              >
+                <option value="desc">Date: Newest First</option>
+                <option value="asc">Date: Oldest First</option>
               </select>
           </div>
         </div>

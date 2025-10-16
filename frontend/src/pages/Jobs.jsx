@@ -265,7 +265,7 @@
 
 
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Plus, Search, Edit, Trash2, Eye, CheckCircle, Send } from 'lucide-react'
 import { jobsAPI } from '../services/api'
 import JobForm from '../components/JobForm'
@@ -297,6 +297,10 @@ const Jobs = () => {
   const { user } = useAuth();
   const userRole = user?.role;
 
+  const [selectedDepartment, setSelectedDepartment] = useState('all')
+  const [selectedLocation, setSelectedLocation] = useState('all')
+  const [sortByDate, setSortByDate] = useState('latest')
+
   const [currentPage, setCurrentPage] = useState(1);
   const jobsPerPage = 10;
 
@@ -320,13 +324,36 @@ const Jobs = () => {
 
   const statuses = ['all', 'Active', 'Draft', 'Closed', 'Archived', 'Pending Approval', 'Approved']
 
-  const filteredJobs = jobs.filter(job => {
+  const departmentOptions = useMemo(() => {
+      const depts = jobs.map(job => job.department?.name?.trim()).filter(Boolean);
+      return ['all', ...Array.from(new Set(depts))];
+    }, [jobs]);
+
+  const locationOptions = useMemo(() => {
+      const locs = jobs.map(job => job.location_details?.trim()).filter(Boolean);
+      return ['all', ...Array.from(new Set(locs))];
+  }, [jobs]);
+
+  const filteredJobs = jobs
+    .filter(job => {
     const matchesSearch = job.position_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           job.department?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          job.location_details?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = selectedStatus === 'all' || job.status === selectedStatus
-    return matchesSearch && matchesStatus
+                          job.location_details?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus = selectedStatus === 'all' || job.status === selectedStatus;
+    const matchesDepartment = selectedDepartment === 'all' || job.department?.name === selectedDepartment;
+    const matchesLocation = selectedLocation === 'all' || job.location_details === selectedLocation;
+
+    return matchesSearch && matchesStatus && matchesDepartment && matchesLocation;
   })
+  .sort((a, b) => {
+    if (sortByDate === 'latest') {
+      return new Date(b.created_at) - new Date(a.created_at);
+    } else {
+      return new Date(a.created_at) - new Date(b.created_at);
+    }
+  });
+
 
   const handleDeleteJob = async (jobId) => {
     if (window.confirm('Are you sure you want to delete this job?')) {
@@ -488,6 +515,45 @@ const handlePublishJob = async (jobId) => {
               ))}
             </select>
           </div>
+          <div className="sm:w-48">
+              <select
+                value={selectedDepartment}
+                onChange={(e) => setSelectedDepartment(e.target.value)}
+                className="input-field"
+              >
+                {departmentOptions.map(dep => (
+                  <option key={dep} value={dep}>
+                    {dep === 'all' ? 'All Departments' : dep}
+                  </option>
+                ))}
+              </select>
+          </div>
+
+          <div className="sm:w-48">
+              <select
+                value={selectedLocation}
+                onChange={(e) => setSelectedLocation(e.target.value)}
+                className="input-field"
+              >
+                {locationOptions.map(loc => (
+                  <option key={loc} value={loc}>
+                    {loc === 'all' ? 'All Locations' : loc}
+                  </option>
+                ))}
+              </select>
+          </div>
+
+          <div className="sm:w-48">
+              <select
+                value={sortByDate}
+                onChange={(e) => setSortByDate(e.target.value)}
+                className="input-field"
+              >
+                <option value="latest">Date: Latest First</option>
+                <option value="oldest">Date: Oldest First</option>
+              </select>
+          </div>
+
         </div>
       </div>
 
@@ -521,10 +587,10 @@ const handlePublishJob = async (jobId) => {
                 {job.position_title}
                 <button
                   className="text-indigo-600 hover:text-indigo-900"
-                  onClick={() => handleAddQuestion(job)}
-                  title="Add Question"
+//                   onClick={() => handleAddQuestion(job)}
+//                   title="Add Question"
                 >
-                  <Plus className="h-4 w-4" />
+{/*                   <Plus className="h-4 w-4" /> */}
                 </button>
               </td>
 

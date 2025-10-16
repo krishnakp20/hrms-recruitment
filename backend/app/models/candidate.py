@@ -49,6 +49,7 @@ class Candidate(Base):
     notice_period = Column(Integer)
     current_compensation = Column(Integer)
     expected_compensation = Column(Integer)
+    designation = Column(String(255), nullable=True)
     resume_url = Column(String(500))
     cover_letter = Column(Text)
     source = Column(Enum(CandidateSource), default=CandidateSource.MANUAL_ENTRY)

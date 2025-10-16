@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, employees, candidates, jobs, applications, dashboard, recruitment_agencies, candidate_profile, recruitment_workflow, interviews, user
+from app.routers import auth, employees, candidates, jobs, applications, dashboard, recruitment_agencies, candidate_profile, recruitment_workflow, interviews, user, interview_module
 from app.core.config import ALLOWED_ORIGINS, HOST, PORT, DEBUG
 from fastapi.staticfiles import StaticFiles
 import os
@@ -20,12 +20,12 @@ OFFER_DIR.mkdir(exist_ok=True)
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
-app.mount("/offers", StaticFiles(directory=str(OFFER_DIR)), name="offers")
+app.mount("/offers", StaticFiles(directory=OFFER_DIR), name="offers")
 
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -46,6 +46,7 @@ app.include_router(recruitment_workflow.router)
 # app.include_router(user.router, prefix="/users", tags=["Users"])
 app.include_router(interviews.router, prefix="/interviews", tags=["Interviews"])
 app.include_router(user.router)
+app.include_router(interview_module.router, tags=["Interview Module"])
 
 @app.get("/")
 async def root():
