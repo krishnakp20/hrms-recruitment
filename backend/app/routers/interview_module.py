@@ -90,7 +90,7 @@ def get_interview_rounds(db: Session = Depends(get_db)):
 # Get all questions
 @router.get("/interview-questions/", response_model=List[InterviewQuestionResponse])
 def get_all_questions(db: Session = Depends(get_db)):
-    questions = db.query(InterviewQuestion).all()
+    questions = db.query(InterviewQuestion).order_by(InterviewQuestion.id.desc()).all()
     return questions
 
 

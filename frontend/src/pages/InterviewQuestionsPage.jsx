@@ -49,16 +49,23 @@ export default function InterviewQuestionsPage() {
     }
   };
 
-  const handleFormSuccess = (newQuestion) => {
-    if (editingQuestion) {
-      setQuestions((prev) =>
-        prev.map((q) => (q.id === newQuestion.id ? newQuestion : q))
-      );
-    } else {
-      setQuestions((prev) => [newQuestion, ...prev]);
-    }
-    setShowForm(false);
+  const handleFormSuccess = (newData) => {
+      // If bulk create — backend returns an array of questions
+      if (Array.isArray(newData)) {
+        setQuestions((prev) => [...newData, ...prev]);
+      } else {
+        // Single update (edit)
+        if (editingQuestion) {
+          setQuestions((prev) =>
+            prev.map((q) => (q.id === newData.id ? newData : q))
+          );
+        } else {
+          setQuestions((prev) => [newData, ...prev]);
+        }
+      }
+      setShowForm(false);
   };
+
 
   // Filter questions by search term
   const filteredQuestions = questions.filter(
