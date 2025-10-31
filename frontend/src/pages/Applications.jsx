@@ -175,8 +175,8 @@ const Applications = () => {
         <thead className="bg-gray-50 top-0 z-10">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">S.No.</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Job Title</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Candidate</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Job Position</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
@@ -200,16 +200,16 @@ const Applications = () => {
                 </td>
 
                 <td className="px-6 py-4">
+                  <div className="text-sm font-medium text-gray-900">{application.job.position_title}</div>
+                  <div className="text-sm text-gray-500">{application.job.experience_level} experience</div>
+                </td>
+
+                <td className="px-6 py-4">
                   <div className="text-sm font-medium text-gray-900">
                     {application.candidate.first_name} {application.candidate.last_name}
                   </div>
                   <div className="text-sm text-gray-500">{application.candidate.email}</div>
                   <div className="text-sm text-gray-500">{application.candidate.phone}</div>
-                </td>
-
-                <td className="px-6 py-4">
-                  <div className="text-sm font-medium text-gray-900">{application.job.position_title}</div>
-                  <div className="text-sm text-gray-500">{application.job.experience_level} experience</div>
                 </td>
 
                 <td className="px-6 py-4 text-sm text-gray-900">

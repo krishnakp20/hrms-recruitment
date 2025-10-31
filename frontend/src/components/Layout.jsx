@@ -29,7 +29,7 @@ const Layout = () => {
   const navigation = [
     { name: "Dashboard", href: "/", icon: Home },
     { name: "Jobs", href: "/jobs", icon: Briefcase },
-    { name: "Candidates", href: "/candidates", icon: UserPlus },
+    { name: "Candidates Database", href: "/candidates", icon: UserPlus },
     { name: "Applications", href: "/applications", icon: FileText },
     { name: "Interview Bank Question", href: "/interview/questions", icon: HelpCircle },
     { name: "Candidate Offers", href: "/offers", icon: FileSignature },

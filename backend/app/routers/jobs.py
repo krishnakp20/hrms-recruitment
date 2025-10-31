@@ -89,12 +89,19 @@ async def get_jobs(
         .offset(skip)
         .all()
     )
+
+    all_pool_candidates = (
+        db.query(CandidateModel)
+        .filter(CandidateModel.is_in_pool == True)
+        .all()
+    )
+
     # Add pool candidate count to each job
     job_outputs = []
     for job in jobs:
-        pool_candidates = get_pool_candidates_to_job(job, db)
+        matched_candidates = match_pool_candidates_to_job(job, all_pool_candidates)
         job_dict = Job.from_orm(job).dict()
-        job_dict["pool_candidate_count"] = len(pool_candidates)
+        job_dict["pool_candidate_count"] = len(matched_candidates)
         job_outputs.append(job_dict)
 
     return job_outputs
