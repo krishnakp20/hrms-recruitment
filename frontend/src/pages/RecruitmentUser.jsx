@@ -249,9 +249,6 @@ const RecruitmentUser = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Active
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Superuser
-                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                   Actions
                 </th>
@@ -270,7 +267,6 @@ const RecruitmentUser = () => {
                     <td className="px-6 py-4 text-sm">{u.username}</td>
                     <td className="px-6 py-4 text-sm">{u.role}</td>
                     <td className="px-6 py-4 text-sm">{u.is_active ? "✅" : "❌"}</td>
-                    <td className="px-6 py-4 text-sm">{u.is_superuser ? "✅" : "❌"}</td>
                     <td className="px-6 py-4 text-right text-sm font-medium space-x-3">
                       <button
                         className="text-blue-600 hover:text-blue-900"

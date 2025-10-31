@@ -253,31 +253,6 @@ const Login = () => {
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value })
 
-  const testConnection = async () => {
-    try {
-      const res = await fetch('http://localhost:8000/health')
-      const data = await res.json()
-      console.log(data)
-      alert('API connection successful!')
-    } catch {
-      alert('API connection failed!')
-    }
-  }
-
-  const testLoginAPI = async () => {
-    try {
-      const res = await fetch('http://localhost:8000/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'admin@hrms.com', password: 'admin123' }),
-      })
-      const data = await res.json()
-      console.log(data)
-      alert('Login test successful!')
-    } catch {
-      alert('Login test failed!')
-    }
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
@@ -348,24 +323,7 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="pt-4 space-y-2">
-          <button
-            onClick={testConnection}
-            className="w-full py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100"
-          >
-            Test API Connection
-          </button>
-          <button
-            onClick={testLoginAPI}
-            className="w-full py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100"
-          >
-            Test Login API Directly
-          </button>
-        </div>
-
         <div className="text-center text-sm text-gray-500 pt-2">
-          Demo Credentials: <br />
-          <code className="text-xs text-gray-700">admin@hrms.com / admin123</code>
         </div>
       </div>
     </div>

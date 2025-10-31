@@ -37,7 +37,8 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
     approval_authority: '',
     recruiter_id: null,
     workflow_template_id: null,
-    recruitment_agency_id: null
+    recruitment_agency_id: null,
+    status: 'Draft'
   })
 
   const selectedDepartment = departments.find(
@@ -115,7 +116,8 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
         approval_authority: editJob.approval_authority || '',
         recruiter_id: editJob.recruiter_id || null,
         workflow_template_id: editJob.workflow_template_id || null,
-        recruitment_agency_id: editJob.recruitment_agency_id || null
+        recruitment_agency_id: editJob.recruitment_agency_id || null,
+        status: editJob.status || 'Draft',
       }))
     }
   }, [editJob])
@@ -159,6 +161,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
     setFormData(prev => ({
       ...prev,
       ...jobData,
+      status: 'Draft',
       hiring_deadline: jobData.hiring_deadline ? jobData.hiring_deadline.split('T')[0] : ''
     }))
   } catch (err) {
@@ -167,10 +170,40 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
 }
 
 
+    // Check if Position Code already exists (before submit)
+    const checkDuplicatePositionCode = (code) => {
+      if (!code || jobsList.length === 0) return false;
+
+      const duplicate = jobsList.some(job =>
+        job.position_code.toLowerCase() === code.toLowerCase() &&
+        (!editJob || job.id !== editJob.id) // exclude current job in edit mode
+      );
+      return duplicate;
+    };
+
+
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
     setError('')
+
+    // Validate Department and Sub Department
+    if (!formData.department_id) {
+        setError('Please select a Department before submitting.')
+        return
+    }
+
+    if (!formData.sub_department) {
+        setError('Please select a Sub Department before submitting.')
+        return
+    }
+
+    if (checkDuplicatePositionCode(formData.position_code)) {
+        setError('Position Code must be unique. This code already exists.');
+        return;
+    }
+
+    setLoading(true)
 
     try {
       // Clean up the form data before sending
@@ -199,6 +232,12 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
       }
 
       console.log('Sending job data:', cleanedData)
+
+      if (!editJob) {
+        cleanedData.status = 'Draft'
+      } else if (editJob && editJob.status !== 'Draft') {
+        cleanedData.status = editJob.status
+      }
       
       if (editJob) {
         await jobsAPI.update(editJob.id, cleanedData)
