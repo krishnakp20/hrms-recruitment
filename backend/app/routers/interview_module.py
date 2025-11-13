@@ -10,6 +10,7 @@ from app.models.candidate import Candidate
 from sqlalchemy import func
 from app.core.database import get_db
 from app.core.security import get_current_user
+from app.models.user import UserRole
 
 router = APIRouter()
 # -----------------------
@@ -436,3 +437,123 @@ def get_session(session_id: int, db: Session = Depends(get_db)):
         job_id=session.job_id
     )
 
+
+
+
+class InterviewRoundTemplateBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    order: Optional[int] = 1
+
+
+class InterviewRoundTemplateCreate(InterviewRoundTemplateBase):
+    pass
+
+
+class InterviewRoundTemplateUpdate(InterviewRoundTemplateBase):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    order: Optional[int] = None
+
+
+class InterviewRound(InterviewRoundTemplateBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+
+
+@router.get("/interview_round_templates/", response_model=List[InterviewRound])
+async def get_interview_round_templates(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    """Get all interview round templates"""
+    templates = (
+        db.query(InterviewRoundTemplate)
+        .order_by(InterviewRoundTemplate.id.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    return templates
+
+
+@router.post("/interview_round_templates/", response_model=InterviewRound)
+async def create_interview_round_template(
+    template: InterviewRoundTemplateCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """Create a new interview round template"""
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    db_template = InterviewRoundTemplate(**template.dict())
+    db.add(db_template)
+    db.commit()
+    db.refresh(db_template)
+    return db_template
+
+
+@router.get("/interview_round_templates/{template_id}", response_model=InterviewRound)
+async def get_interview_round_template(
+    template_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """Get a specific interview round template"""
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    template = db.query(InterviewRoundTemplate).filter(InterviewRoundTemplate.id == template_id).first()
+    if template is None:
+        raise HTTPException(status_code=404, detail="Interview round template not found")
+    return template
+
+
+@router.put("/interview_round_templates/{template_id}", response_model=InterviewRound)
+async def update_interview_round_template(
+    template_id: int,
+    template: InterviewRoundTemplateUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """Update an existing interview round template"""
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    db_template = db.query(InterviewRoundTemplate).filter(InterviewRoundTemplate.id == template_id).first()
+    if db_template is None:
+        raise HTTPException(status_code=404, detail="Interview round template not found")
+
+    for field, value in template.dict(exclude_unset=True).items():
+        setattr(db_template, field, value)
+
+    db.commit()
+    db.refresh(db_template)
+    return db_template
+
+
+@router.delete("/interview_round_templates/{template_id}")
+async def delete_interview_round_template(
+    template_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """Delete an interview round template"""
+    if current_user.role not in [UserRole.ADMIN, UserRole.HR_SPOC]:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    db_template = db.query(InterviewRoundTemplate).filter(InterviewRoundTemplate.id == template_id).first()
+    if db_template is None:
+        raise HTTPException(status_code=404, detail="Interview round template not found")
+
+    db.delete(db_template)
+    db.commit()
+    return {"message": "Interview round template deleted successfully"}

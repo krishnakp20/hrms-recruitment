@@ -194,4 +194,13 @@ export const departmentsAPI = {
 };
 
 
+export const interviewRoundTemplatesAPI = {
+  getTemplates: (params = {}) => api.get("/interview_round_templates/", { params }),
+  getTemplate: (id) => api.get(`/interview_round_templates/${id}`),
+  createTemplate: (data) => api.post("/interview_round_templates/", data),
+  updateTemplate: (id, data) => api.put(`/interview_round_templates/${id}`, data),
+  deleteTemplate: (id) => api.delete(`/interview_round_templates/${id}`),
+};
+
+
 export default api 

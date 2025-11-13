@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Building2,
   Workflow,
+  GitBranch,
   Layers,
 } from "lucide-react";
 import { useState } from "react";
@@ -43,6 +44,7 @@ const Layout = () => {
         { name: "Recruitment Agencies", href: "/recruitment-agencies", icon: Building2 },
         { name: "Recruitment Workflows", href: "/recruitment-workflow", icon: Workflow },
         { name: "Departments", href: "/department", icon: Layers },
+        { name: "Interview Rounds", href: "/interviews-round", icon: GitBranch },
       ],
     },
   ];

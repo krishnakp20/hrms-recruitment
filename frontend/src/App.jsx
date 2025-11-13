@@ -21,6 +21,7 @@ import RecruitmentUser from "./pages/RecruitmentUser";
 import DepartmentPage from "./pages/DepartmentPage";
 import InterviewQuestionsPage from "./pages/InterviewQuestionsPage";
 import InterviewConductPage from "./pages/InterviewConductPage";
+import InterviewRoundTemplatePage from "./pages/InterviewRoundTemplatePage";
 
 function App() {
   return (
@@ -64,6 +65,7 @@ function App() {
             <Route path="/department" element={<DepartmentPage />} />
             <Route path="/interview/questions" element={<InterviewQuestionsPage />} />
             <Route path="/interviews/session/:sessionId" element={<InterviewConductPage />} />
+            <Route path="/interviews-round" element={<InterviewRoundTemplatePage />} />
           </Route>
         </Routes>
       </div>
