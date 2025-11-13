@@ -17,6 +17,7 @@ from app.models.interview import Question as QuestionModel
 from app.routers.match_pool_utils import match_pool_candidates_to_job, extract_skills, parse_experience_range
 from app.models.interview import RoundType
 from sqlalchemy import func, or_
+from sqlalchemy.orm import joinedload
 
 
 router = APIRouter()
@@ -65,7 +66,7 @@ async def get_jobs(
     current_user = Depends(get_current_user)
 ):
     """Get all jobs with optional filtering"""
-    query = db.query(JobModel)
+    query = (db.query(JobModel).options(joinedload(JobModel.created_by_user)))
     
     if status:
         query = query.filter(JobModel.status == status)
@@ -76,7 +77,7 @@ async def get_jobs(
     if current_user.role == UserRole.EMPLOYER:
         query = query.filter(JobModel.created_by == current_user.id)
     elif current_user.role == UserRole.RECRUITER:
-        query = query.filter(JobModel.recruiter_id == current_user.id)
+        query = query.filter(JobModel.created_by == current_user.id)
     elif current_user.role == UserRole.HR_SPOC:
         # HR SPOC can see all jobs
         pass
@@ -120,7 +121,7 @@ async def get_job(
     # Role-based access control
     if current_user.role == UserRole.EMPLOYER and job.created_by != current_user.id:
         raise HTTPException(status_code=403, detail="Access denied")
-    elif current_user.role == UserRole.RECRUITER and job.recruiter_id != current_user.id:
+    elif current_user.role == UserRole.RECRUITER and job.created_by != current_user.id:
         raise HTTPException(status_code=403, detail="Access denied")
     
     return job
@@ -135,7 +136,7 @@ async def create_job(
     print(f"DEBUG: User {current_user.email} with role {current_user.role} attempting to create job")
     
     # Role-based access control
-    if current_user.role not in [UserRole.EMPLOYER, UserRole.MANAGER, UserRole.ADMIN, UserRole.HR_SPOC]:
+    if current_user.role not in [UserRole.EMPLOYER, UserRole.RECRUITER, UserRole.MANAGER, UserRole.ADMIN, UserRole.HR_SPOC]:
         print(f"DEBUG: Access denied for role {current_user.role}")
         raise HTTPException(status_code=403, detail="Only employers, managers, admins, and HR SPOCs can create jobs")
     
@@ -161,7 +162,7 @@ async def update_job(
     # Role-based access control
     if current_user.role == UserRole.EMPLOYER and db_job.created_by != current_user.id:
         raise HTTPException(status_code=403, detail="Access denied")
-    elif current_user.role == UserRole.RECRUITER and db_job.recruiter_id != current_user.id:
+    elif current_user.role == UserRole.RECRUITER and db_job.created_by != current_user.id:
         raise HTTPException(status_code=403, detail="Access denied")
     
     for field, value in job.dict(exclude_unset=True).items():

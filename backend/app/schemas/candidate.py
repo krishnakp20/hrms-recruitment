@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 from app.models.candidate import CandidateStatus, CandidateSource
+from .user import User
 
 class CandidateBase(BaseModel):
     first_name: str
@@ -66,6 +67,7 @@ class Candidate(CandidateBase):
     experience_years: Optional[int]
     phone: Optional[str] = None
     created_by: Optional[int] = None
+    created_by_user: Optional[User] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

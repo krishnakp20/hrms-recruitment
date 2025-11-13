@@ -571,6 +571,12 @@ const handlePublishJob = async (jobId) => {
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pool / Vacancies</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date Added</th>
+            {userRole === "ADMIN" && (
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Created By
+              </th>
+            )}
+
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
           </tr>
         </thead>
@@ -623,6 +629,12 @@ const handlePublishJob = async (jobId) => {
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {new Date(job.created_at).toLocaleDateString("en-GB").replace(/\//g, "-")}
               </td>
+
+              {userRole === "ADMIN" && (
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {job.created_by_user?.username || "—"}
+                  </td>
+              )}
 
               {/* ✅ Actions */}
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

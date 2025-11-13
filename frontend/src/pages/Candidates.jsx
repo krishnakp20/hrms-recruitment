@@ -4,6 +4,7 @@ import CandidateForm from '../components/CandidateForm'
 import { candidatesAPI } from '../services/api'
 import CandidateView from '../components/CandidateView'
 import CandidateActions from '../components/CandidateActions'
+import { useAuth } from '../contexts/AuthContext';
 
 const Candidates = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -19,6 +20,8 @@ const Candidates = () => {
   const [selectedGender, setSelectedGender] = useState('all')
   const [selectedEducation, setSelectedEducation] = useState('all')
   const [sortOrder, setSortOrder] = useState('desc');
+  const { user } = useAuth();
+  const userRole = user?.role;
 
   const candidatesPerPage = 10;
 
@@ -319,6 +322,11 @@ const Candidates = () => {
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skills</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date Added</th>
+            {userRole === "ADMIN" && (
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Created By
+              </th>
+            )}
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
           </tr>
         </thead>
@@ -348,6 +356,11 @@ const Candidates = () => {
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {new Date(candidate.created_at).toLocaleDateString("en-GB").replace(/\//g, "-")}
               </td>
+              {userRole === "ADMIN" && (
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {candidate.created_by_user?.username || "—"}
+                  </td>
+              )}
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div className="flex items-center justify-end space-x-2">
                   <button className="text-primary-600 hover:text-primary-900" onClick={() => handleViewClick(candidate)}>

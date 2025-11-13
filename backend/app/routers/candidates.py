@@ -40,7 +40,7 @@ async def get_candidates(
     current_user = Depends(get_current_user)
 ):
     """Get all candidates with optional filtering"""
-    query = db.query(CandidateModel)
+    query = (db.query(CandidateModel).options(joinedload(CandidateModel.created_by_user)))
     
     if status:
         query = query.filter(CandidateModel.status == status)
@@ -398,8 +398,12 @@ async def search_candidates(
 
 @router.post("/upload-excel/")
 async def upload_candidates_excel(
-    file: UploadFile = File(...), db: Session = Depends(get_db)
+    file: UploadFile = File(...), db: Session = Depends(get_db), current_user = Depends(get_current_user)
 ):
+
+    # Role-based access control
+    if current_user.role not in [UserRole.HR_SPOC, UserRole.RECRUITER, UserRole.ADMIN]:
+        raise HTTPException(status_code=403, detail="Access denied")
 
     if not file.filename.endswith(('.xlsx', '.xls')):
         raise HTTPException(
@@ -441,6 +445,7 @@ async def upload_candidates_excel(
                     location_pincode=str(row["location_pincode"]).strip() if pd.notna(row.get("location_pincode")) else None,
                     education_qualification_short=str(row["education_qualification_short"]).strip()
                         if pd.notna(row.get("education_qualification_short")) else None,
+                    created_by=current_user.id,
                 )
                 db.add(candidate)
 

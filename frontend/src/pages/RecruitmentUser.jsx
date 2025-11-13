@@ -23,25 +23,9 @@ const RecruitmentUser = () => {
       errors.email = "Valid email is required.";
     }
 
-    // // Phone validation
-    // const phoneRegex = /^[0-9]{10}$/;
-    // if (!formData.phone || !phoneRegex.test(formData.phone)) {
-    //   errors.phone = "Phone number must be 10 digits.";
-    // }
-
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
-
-  // const [formData, setFormData] = useState({
-  //   email: "",
-  //   username: "",
-  //   full_name: "",
-  //   role: "admin", // default
-  //   is_active: true,
-  //   is_superuser: false,
-  //   password: "",
-  // });
 
   const [formData, setFormData] = useState({
   email: "",
@@ -109,34 +93,37 @@ const RecruitmentUser = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return; // stop if invalid
-    try {
-      if (editingUser) {
-        await usersAPI.update(editingUser.id, formData);
-      } else {
-        await usersAPI.create(formData);
-      }
-      setShowForm(false);
-      setEditingUser(null);
-      resetForm();
-      loadUsers();
-    } catch (err) {
-      console.error("Error saving user:", err);
-    }
-  };
+      e.preventDefault();
+      if (!validateForm()) return;
 
-  // const resetForm = () => {
-  //   setFormData({
-  //     email: "",
-  //     username: "",
-  //     full_name: "",
-  //     role: "user",
-  //     is_active: true,
-  //     is_superuser: false,
-  //     password: "",
-  //   });
-  // };
+      try {
+        let payload = { ...formData };
+
+        // ✅ Don't send empty password on update
+        if (editingUser && !formData.password) {
+          delete payload.password;
+        }
+
+        // ✅ Ensure role is not empty
+        if (!payload.role) {
+          alert("Please select a role before saving.");
+          return;
+        }
+
+        if (editingUser) {
+          await usersAPI.update(editingUser.id, payload);
+        } else {
+          await usersAPI.create(payload);
+        }
+
+        setShowForm(false);
+        setEditingUser(null);
+        resetForm();
+        loadUsers();
+      } catch (err) {
+        console.error("Error saving user:", err);
+      }
+  };
 
   const resetForm = () => {
   setFormData({
@@ -378,15 +365,6 @@ const RecruitmentUser = () => {
               {editingUser ? "Edit User" : "Add User"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-3">
-              {/* <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                className="input-field w-full"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              /> */}
               <input
                 type="email"
                 name="email"
