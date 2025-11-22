@@ -19,6 +19,32 @@ router = APIRouter()
 
 
 
+@router.get("/questions/{job_id}/{round_name}")
+def get_questions(job_id: int, round_name: str, db: Session = Depends(get_db)):
+    # Find round ID
+    round_obj = (
+        db.query(InterviewRoundTemplate)
+        .filter(InterviewRoundTemplate.name == round_name)
+        .first()
+    )
+
+    if not round_obj:
+        raise HTTPException(status_code=404, detail="Round not found")
+
+    # Query only question text
+    questions = (
+        db.query(InterviewQuestion.question_text)
+        .filter(
+            InterviewQuestion.job_id == job_id,
+            InterviewQuestion.round_id == round_obj.id
+        )
+        .all()
+    )
+
+    return [q[0] for q in questions]   # Extract pure strings
+
+
+
 class JobResponse(BaseModel):
     id: int
     position_title: str

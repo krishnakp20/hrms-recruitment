@@ -29,14 +29,14 @@ async def get_dashboard_stats(
         total_candidates = db.query(CandidateModel).count()
         new_candidates = db.query(CandidateModel).filter(CandidateModel.status == CandidateStatus.NEW).count()
         shortlisted_candidates = db.query(CandidateModel).filter(CandidateModel.status == CandidateStatus.SHORTLISTED).count()
-        interviewed_candidates = db.query(CandidateModel).filter(CandidateModel.status == CandidateStatus.INTERVIEWED).count()
+        # interviewed_candidates = db.query(CandidateModel).filter(CandidateModel.status == CandidateStatus.INTERVIEWED).count()
         pool_candidates = db.query(CandidateModel).filter(CandidateModel.is_in_pool == True).count()
         
         # Application statistics
         total_applications = db.query(ApplicationModel).count()
         applied_applications = db.query(ApplicationModel).filter(ApplicationModel.status == ApplicationStatus.APPLIED).count()
         shortlisted_applications = db.query(ApplicationModel.status == ApplicationStatus.SHORTLISTED).count()
-        interviewed_applications = db.query(ApplicationModel.status == ApplicationStatus.INTERVIEWED).count()
+        # interviewed_applications = db.query(ApplicationModel.status == ApplicationStatus.INTERVIEWED).count()
         hired_applications = db.query(ApplicationModel.status == ApplicationStatus.HIRED).count()
         
         # Calculate changes (mock data for now)
@@ -183,7 +183,7 @@ async def get_recruitment_overview(
     total_candidates = db.query(CandidateModel).count()
     new_candidates = db.query(CandidateModel).filter(CandidateModel.status == CandidateStatus.NEW).count()
     shortlisted_candidates = db.query(CandidateModel).filter(CandidateModel.status == CandidateStatus.SHORTLISTED).count()
-    interviewed_candidates = db.query(CandidateModel).filter(CandidateModel.status == CandidateStatus.INTERVIEWED).count()
+    # interviewed_candidates = db.query(CandidateModel).filter(CandidateModel.status == CandidateStatus.INTERVIEWED).count()
     pool_candidates = db.query(CandidateModel).filter(CandidateModel.is_in_pool == True).count()
     
     # Application statistics
@@ -210,7 +210,7 @@ async def get_recruitment_overview(
             "total": total_candidates,
             "new": new_candidates,
             "shortlisted": shortlisted_candidates,
-            "interviewed": interviewed_candidates,
+            # "interviewed": interviewed_candidates,
             "in_pool": pool_candidates
         },
         "applications": {

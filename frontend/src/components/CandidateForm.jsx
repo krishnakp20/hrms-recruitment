@@ -1,10 +1,54 @@
 import { useState, useEffect } from 'react'
 import { X, Save } from 'lucide-react'
 import { candidatesAPI } from '../services/api'
+import api from '../services/api'
+
+
+const INDIAN_STATES = [
+  "Andhra Pradesh",
+  "Andaman and Nicobar Islands",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chandigarh",
+  "Chhattisgarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jammu and Kashmir",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Ladakh",
+  "Lakshadweep",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Puducherry",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal"
+];
+
 
 const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [jobList, setJobList] = useState([]);
+  const [screeningQuestions, setScreeningQuestions] = useState([]);
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -25,11 +69,16 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
     designation: '',
     resume_url: '',
     cover_letter: '',
-    source: 'Manual Entry',
+    source: 'Job Portal',
     source_details: '',
     status: 'New',
     notes: '',
-    is_in_pool: false
+    is_in_pool: false,
+    job_id: '',
+    process: '',
+    hr_initial_screening_answers: '',
+    reason_of_rejection: '',
+    reason_for_kiv_other_roles: ''
   })
 
   useEffect(() => {
@@ -42,13 +91,39 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
     }
   }, [editCandidate])
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }))
-  }
+  useEffect(() => {
+      const fetchJobs = async () => {
+        try {
+          const res = await api.get("/jobs/minimal");
+          setJobList(res.data || []);
+        } catch (error) {
+          console.error("Failed to load jobs:", error);
+        }
+      };
+
+      fetchJobs();
+  }, []);
+
+
+  const handleChange = async (e) => {
+      const { name, value, type, checked } = e.target;
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      }));
+
+      if (name === "job_id" && value) {
+        try {
+          const res = await api.get(`/questions/${value}/Initial%20Screening`);
+          setScreeningQuestions(res.data || []);
+        } catch (err) {
+          console.error("Failed to load screening questions:", err);
+          setScreeningQuestions([]);
+        }
+      }
+  };
+
 
   const handleSubmit = async (e) => {
       e.preventDefault()
@@ -58,14 +133,9 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
       // Required fields
       const requiredFields = [
         { name: 'first_name', label: 'First Name' },
-        { name: 'last_name', label: 'Last Name' },
-        { name: 'email', label: 'Email' },
         { name: 'phone', label: 'Phone' },
-        { name: 'gender', label: 'Gender' },
-        { name: 'location_city', label: 'City' },
-        { name: 'education_qualification_short', label: 'Education Qualification (Short)' },
-        { name: 'experience_years', label: 'Experience (Years)' },
-        { name: 'cover_letter', label: 'Skills' },
+        { name: 'job_id', label: 'Job Title' },
+        { name: 'process', label: 'Process' },
       ];
 
       // Check for empty required fields
@@ -83,7 +153,7 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
       try {
         const cleanedData = {
           ...formData,
-          experience_years: parseInt(formData.experience_years) || 0,
+          experience_years: String(formData.experience_years),
           notice_period: parseInt(formData.notice_period) || 0,
           current_compensation: parseInt(formData.current_compensation) || 0,
           expected_compensation: parseInt(formData.expected_compensation) || 0,
@@ -93,6 +163,33 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
           await candidatesAPI.update(editCandidate.id, cleanedData)
         } else {
           await candidatesAPI.create(cleanedData)
+        }
+
+        let savedCandidate;
+
+        if (editCandidate) {
+          savedCandidate = await candidatesAPI.update(editCandidate.id, cleanedData);
+        } else {
+          savedCandidate = await candidatesAPI.create(cleanedData);
+        }
+
+        const candidateId = editCandidate ? editCandidate.id : savedCandidate.data.id;
+
+        // Auto-create application
+        if (
+          cleanedData.status === "Shortlisted" &&
+          cleanedData.is_in_pool &&
+          cleanedData.job_id
+        ) {
+          try {
+            await api.post("/applications/", {
+              candidate_id: candidateId,
+              job_id: cleanedData.job_id,
+              status: "Applied",
+            });
+          } catch (err) {
+            console.error("Application creation failed:", err);
+          }
         }
 
         onSuccess()
@@ -137,13 +234,44 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
               <input id="last_name" name="last_name" value={formData.last_name} onChange={handleChange} className="input-field" />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input id="email" name="email" value={formData.email} onChange={handleChange} className="input-field" />
-            </div>
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone No</label>
               <input id="phone" name="phone" value={formData.phone} onChange={handleChange} className="input-field" />
             </div>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email ID</label>
+              <input id="email" name="email" value={formData.email} onChange={handleChange} className="input-field" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
+              <select
+                id="job_id"
+                name="job_id"
+                value={formData.job_id}
+                onChange={handleChange}
+                className="input-field"
+              >
+                <option value="">Select Job Title</option>
+                {jobList.map(job => (
+                  <option key={job.id} value={job.id}>
+                    {job.position_title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Process</label>
+              <input
+                id="process"
+                name="process"
+                value={formData.process}
+                onChange={handleChange}
+                className="input-field"
+              />
+            </div>
+
+
             <div>
               <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
               <select
@@ -161,7 +289,18 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
             </div>
             <div>
               <label htmlFor="location_state" className="block text-sm font-medium text-gray-700 mb-1">State</label>
-              <input id="location_state" name="location_state" value={formData.location_state} onChange={handleChange} className="input-field" />
+              <select
+                  id="location_state"
+                  name="location_state"
+                  value={formData.location_state}
+                  onChange={handleChange}
+                  className="input-field"
+                >
+                  <option value="">Select State</option>
+                  {INDIAN_STATES.map(state => (
+                    <option key={state} value={state}>{state}</option>
+                  ))}
+              </select>
             </div>
             <div>
               <label htmlFor="location_city" className="block text-sm font-medium text-gray-700 mb-1">City</label>
@@ -181,25 +320,43 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
             </div>
           </div>
 
-          <div>
-            <label htmlFor="education_qualification_short" className="block text-sm font-medium text-gray-700 mb-1">Education Qualification (Short)</label>
-            <textarea id="education_qualification_short" name="education_qualification_short" value={formData.education_qualification_short} onChange={handleChange} className="input-field" />
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="education_qualification_short" className="block text-sm font-medium text-gray-700 mb-1">Education Qualification</label>
+                <select
+                  id="education_qualification_short"
+                  name="education_qualification_short"
+                  value={formData.education_qualification_short}
+                  onChange={handleChange}
+                  className="input-field"
+                >
+                  <option value="">Select Education</option>
+                  <option value="IXth">IXth</option>
+                  <option value="Xth">Xth</option>
+                  <option value="XIIth">XIIth</option>
+                  <option value="Diploma">Diploma</option>
+                  <option value="Graduate">Graduate</option>
+                  <option value="Post Graduate">Post Graduate</option>
+                  <option value="Doctorate">Doctorate</option>
+                </select>
+              </div>
 
-          <div>
-            <label htmlFor="education_qualification_detailed" className="block text-sm font-medium text-gray-700 mb-1">Education Qualification (Detailed)</label>
-            <textarea id="education_qualification_detailed" name="education_qualification_detailed" value={formData.education_qualification_detailed} onChange={handleChange} className="input-field" />
+              <div>
+                <label htmlFor="education_qualification_detailed" className="block text-sm font-medium text-gray-700 mb-1">Education Qualification (Detailed)</label>
+                <textarea id="education_qualification_detailed" name="education_qualification_detailed" value={formData.education_qualification_detailed} onChange={handleChange} className="input-field" />
+              </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="experience_years" className="block text-sm font-medium text-gray-700 mb-1">Experience (Years)</label>
-              <input id="experience_years" name="experience_years" type="number" value={formData.experience_years} onChange={handleChange} className="input-field" />
+              <label htmlFor="experience_years" className="block text-sm font-medium text-gray-700 mb-1">Post Qualification Experience (Years)</label>
+              <input id="experience_years" name="experience_years" value={formData.experience_years} onChange={handleChange} className="input-field" />
             </div>
             <div>
-              <label htmlFor="notice_period" className="block text-sm font-medium text-gray-700 mb-1">Notice Period (Days)</label>
-              <input id="notice_period" name="notice_period" type="number" value={formData.notice_period} onChange={handleChange} className="input-field" />
+                <label htmlFor="experience_details" className="block text-sm font-medium text-gray-700 mb-1">Experience Details</label>
+                <textarea id="experience_details" name="experience_details" value={formData.experience_details} onChange={handleChange} className="input-field" />
             </div>
+
             <div>
               <label htmlFor="current_compensation" className="block text-sm font-medium text-gray-700 mb-1">Current Compensation (per Month) </label>
               <input id="current_compensation" name="current_compensation" type="number" value={formData.current_compensation} onChange={handleChange} className="input-field" />
@@ -208,50 +365,118 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
               <label htmlFor="expected_compensation" className="block text-sm font-medium text-gray-700 mb-1">Expected Compensation (per Month) </label>
               <input id="expected_compensation" name="expected_compensation" type="number" value={formData.expected_compensation} onChange={handleChange} className="input-field" />
             </div>
+            <div>
+              <label htmlFor="notice_period" className="block text-sm font-medium text-gray-700 mb-1">Notice Period (Days)</label>
+              <input id="notice_period" name="notice_period" type="number" value={formData.notice_period} onChange={handleChange} className="input-field" />
+            </div>
+            <div>
+                <label htmlFor="resume_url" className="block text-sm font-medium text-gray-700 mb-1">Resume URL</label>
+                <input id="resume_url" name="resume_url" value={formData.resume_url} onChange={handleChange} className="input-field" />
+            </div>
           </div>
 
           <div>
-            <label htmlFor="experience_details" className="block text-sm font-medium text-gray-700 mb-1">Experience Details</label>
-            <textarea id="experience_details" name="experience_details" value={formData.experience_details} onChange={handleChange} className="input-field" />
-          </div>
-
-          <div>
-            <label htmlFor="resume_url" className="block text-sm font-medium text-gray-700 mb-1">Resume URL</label>
-            <input id="resume_url" name="resume_url" value={formData.resume_url} onChange={handleChange} className="input-field" />
-          </div>
-
-          <div>
-            <label htmlFor="cover_letter" className="block text-sm font-medium text-gray-700 mb-1">Skills</label>
+            <label htmlFor="cover_letter" className="block text-sm font-medium text-gray-700 mb-1">Key Skills</label>
             <textarea id="cover_letter" name="cover_letter" value={formData.cover_letter} onChange={handleChange} className="input-field" />
           </div>
 
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="source" className="block text-sm font-medium text-gray-700 mb-1">Source</label>
+                <select id="source" name="source" value={formData.source} onChange={handleChange} className="input-field">
+                  {[
+                    'Internal Career Page',
+                    'Job Portal',
+                    'Social Media',
+                    'Campus Placement',
+                    'Reference',
+                    'Walk-in',
+                    'WhatsApp'
+                  ].map(option => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="source_details" className="block text-sm font-medium text-gray-700 mb-1">Source Details</label>
+                <input id="source_details" name="source_details" value={formData.source_details} onChange={handleChange} className="input-field" />
+              </div>
+          </div>
+
+          {/* Show screening questions if available */}
+          {screeningQuestions.length > 0 && (
+              <div className="bg-gray-50 p-4 rounded border mb-4">
+                <h3 className="text-sm font-semibold mb-2">Initial Screening Questions</h3>
+                <ul className="list-disc pl-5 space-y-1">
+                  {screeningQuestions.map((q, idx) => (
+                    <li key={idx} className="text-gray-700">{q}</li>
+                  ))}
+                </ul>
+              </div>
+          )}
+
           <div>
-            <label htmlFor="source" className="block text-sm font-medium text-gray-700 mb-1">Source</label>
-            <select id="source" name="source" value={formData.source} onChange={handleChange} className="input-field">
-              {['Internal Career Page','Job Portal','Social Media','Campus Placement','Reference','Walk-in','WhatsApp','Manual Entry'].map(option => (
-                <option key={option} value={option}>{option}</option>
-              ))}
-            </select>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                HR Initial Screening Answers
+              </label>
+              <textarea
+                id="hr_initial_screening_answers"
+                name="hr_initial_screening_answers"
+                value={formData.hr_initial_screening_answers}
+                onChange={handleChange}
+                className="input-field"
+                placeholder="Write answers here..."
+              />
+          </div>
+
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select id="status" name="status" value={formData.status} onChange={handleChange} className="input-field">
+                  {[
+                     'New',
+                     'Not Reachable',
+                     'Shortlisted',
+                     'Rejected',
+                     'KIV For Other Roles'
+                  ].map(option => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} className="input-field" />
+              </div>
           </div>
 
           <div>
-            <label htmlFor="source_details" className="block text-sm font-medium text-gray-700 mb-1">Source Details</label>
-            <input id="source_details" name="source_details" value={formData.source_details} onChange={handleChange} className="input-field" />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Reason of Rejection</label>
+              <textarea
+                id="reason_of_rejection"
+                name="reason_of_rejection"
+                value={formData.reason_of_rejection}
+                onChange={handleChange}
+                className="input-field"
+              />
           </div>
 
           <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select id="status" name="status" value={formData.status} onChange={handleChange} className="input-field">
-              {['New','Shortlisted','Interviewed','Rejected','Hired','Pool'].map(option => (
-                <option key={option} value={option}>{option}</option>
-              ))}
-            </select>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Reason for KIV Other Roles</label>
+              <textarea
+                id="reason_for_kiv_other_roles"
+                name="reason_for_kiv_other_roles"
+                value={formData.reason_for_kiv_other_roles}
+                onChange={handleChange}
+                className="input-field"
+              />
           </div>
 
-          <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-            <textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} className="input-field" />
-          </div>
+
 
           <label className="flex items-center space-x-2">
             <input

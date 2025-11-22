@@ -92,7 +92,7 @@ const Candidates = () => {
 }
 
 
-  const statuses = ['all', 'New', 'Shortlisted', 'Interviewed', 'Rejected', 'Hired', 'Pool']
+  const statuses = ['all', 'New', 'Not Reachable', 'Shortlisted', 'Rejected', 'KIV For Other Roles']
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -100,11 +100,11 @@ const Candidates = () => {
         return 'bg-blue-100 text-blue-800'
       case 'Shortlisted':
         return 'bg-yellow-100 text-yellow-800'
-      case 'Interviewed':
+      case 'Not Reachable':
         return 'bg-purple-100 text-purple-800'
       case 'Rejected':
         return 'bg-red-100 text-red-800'
-      case 'Hired':
+      case 'KIV For Other Roles':
         return 'bg-green-100 text-green-800'
       default:
         return 'bg-gray-100 text-gray-800'
@@ -281,19 +281,19 @@ const Candidates = () => {
                 ))}
               </select>
           </div>
-          <div className="sm:w-48">
-              <select
-                value={selectedSkill}
-                onChange={(e) => setSelectedSkill(e.target.value)}
-                className="input-field"
-              >
-                {skillOptions.map(skill => (
-                  <option key={skill} value={skill}>
-                    {skill === 'all' ? 'All Skills' : skill}
-                  </option>
-                ))}
-              </select>
-          </div>
+{/*           <div className="sm:w-48"> */}
+{/*               <select */}
+{/*                 value={selectedSkill} */}
+{/*                 onChange={(e) => setSelectedSkill(e.target.value)} */}
+{/*                 className="input-field" */}
+{/*               > */}
+{/*                 {skillOptions.map(skill => ( */}
+{/*                   <option key={skill} value={skill}> */}
+{/*                     {skill === 'all' ? 'All Skills' : skill} */}
+{/*                   </option> */}
+{/*                 ))} */}
+{/*               </select> */}
+{/*           </div> */}
           <div className="sm:w-48">
               <select
                 value={sortOrder}
@@ -313,13 +313,11 @@ const Candidates = () => {
           <tr>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">S.No.</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone No</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gender</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">City</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Education</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Experience</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skills</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Qualification</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">PQE</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date Added</th>
             {userRole === "ADMIN" && (
@@ -341,13 +339,11 @@ const Candidates = () => {
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 {candidate.first_name} {candidate.last_name}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.email}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.phone}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.gender}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.location_city}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.education_qualification_short}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.experience_years} years</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.cover_letter}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.experience_years}</td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(candidate.status)}`}>
                   {candidate.status}

@@ -45,19 +45,19 @@ const JobPoolCandidatesPage = () => {
     }
   }
 
-  const handleShortlist = async (candidateId) => {
-  try {
-    await jobsAPI.shortlistCandidate(jobId, candidateId)
-    setMessage('✅ Candidate shortlisted successfully!')
-    // refresh candidates
-    fetchPoolCandidates()
-    setTimeout(() => setMessage(''), 3000)
-  } catch (err) {
-    console.error("Failed to shortlist candidate", err)
-    setMessage('❌ Failed to shortlist candidate.')
-    setTimeout(() => setMessage(''), 3000)
-  }
-}
+//   const handleShortlist = async (candidateId) => {
+//   try {
+//     await jobsAPI.shortlistCandidate(jobId, candidateId)
+//     setMessage('✅ Candidate shortlisted successfully!')
+//     // refresh candidates
+//     fetchPoolCandidates()
+//     setTimeout(() => setMessage(''), 3000)
+//   } catch (err) {
+//     console.error("Failed to shortlist candidate", err)
+//     setMessage('❌ Failed to shortlist candidate.')
+//     setTimeout(() => setMessage(''), 3000)
+//   }
+// }
 
     const totalPages = Math.ceil(filteredCandidates.length / itemsPerPage)
     const paginatedCandidates = filteredCandidates.slice(
@@ -103,10 +103,11 @@ const JobPoolCandidatesPage = () => {
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">City</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Experience</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skills</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Qualification</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">PQE</th>
+{/*             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skills</th> */}
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+{/*             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th> */}
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -129,23 +130,24 @@ const JobPoolCandidatesPage = () => {
                 <td className="px-6 py-4">{candidate.email}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.phone}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.location_city}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.experience_years} years</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.cover_letter}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.education_qualification_short}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.experience_years}</td>
+{/*                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.cover_letter}</td> */}
                 <td className="px-6 py-4">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(candidate.status)}`}>
                     {candidate.status || 'N/A'}
                   </span>
                 </td>
-                <td className="px-6 py-4">
-                  {candidate.status !== 'Shortlisted' && (
-                    <button
-                      onClick={() => handleShortlist(candidate.id)}
-                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                    >
-                      Shortlist
-                    </button>
-                  )}
-                </td>
+{/*                 <td className="px-6 py-4"> */}
+{/*                   {candidate.status !== 'Shortlisted' && ( */}
+{/*                     <button */}
+{/*                       onClick={() => handleShortlist(candidate.id)} */}
+{/*                       className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700" */}
+{/*                     > */}
+{/*                       Shortlist */}
+{/*                     </button> */}
+{/*                   )} */}
+{/*                 </td> */}
               </tr>
             ))
           )}

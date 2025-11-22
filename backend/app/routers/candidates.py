@@ -100,8 +100,15 @@ async def create_candidate(
     # Role-based access control
     if current_user.role not in [UserRole.HR_SPOC, UserRole.RECRUITER, UserRole.ADMIN]:
         raise HTTPException(status_code=403, detail="Access denied")
+
+    # Convert empty strings "" to None
+    candidate_data = candidate.dict()
+    cleaned_data = {
+        key: (value if value not in ["", " "] else None)
+        for key, value in candidate_data.items()
+    }
     
-    db_candidate = CandidateModel(**candidate.dict(), created_by=current_user.id)
+    db_candidate = CandidateModel(**cleaned_data, created_by=current_user.id)
     db.add(db_candidate)
     db.commit()
     db.refresh(db_candidate)

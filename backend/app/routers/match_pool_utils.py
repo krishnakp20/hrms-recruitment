@@ -36,19 +36,34 @@ def parse_experience_range(exp_range: str):
 
 
 
+# def match_pool_candidates_to_job(job: Job, candidates: List[Candidate]) -> List[Candidate]:
+#     """
+#     Match candidates to a job based only on job.position_title and candidate.designation.
+#     """
+#     matched = []
+#
+#     for candidate in candidates:
+#         if (
+#             job.position_title
+#             and candidate.designation
+#             and job.position_title.strip().lower() == candidate.designation.strip().lower()
+#         ):
+#             matched.append(candidate)
+#
+#     return matched
+
+
 def match_pool_candidates_to_job(job: Job, candidates: List[Candidate]) -> List[Candidate]:
     """
-    Match candidates to a job based only on job.position_title and candidate.designation.
+    Match candidates to a job using ONLY:
+    - candidate.job_id == job.id
     """
     matched = []
 
     for candidate in candidates:
-        if (
-            job.position_title
-            and candidate.designation
-            and job.position_title.strip().lower() == candidate.designation.strip().lower()
-        ):
+        if candidate.job_id == job.id:
             matched.append(candidate)
 
     return matched
+
 

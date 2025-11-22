@@ -6,8 +6,8 @@ from .user import User
 
 class CandidateBase(BaseModel):
     first_name: str
-    last_name: str
-    email: str
+    last_name: Optional[str] = None
+    email: Optional[str] = None
     phone: str
     gender: Optional[str] = None
     location_state: Optional[str] = None
@@ -16,7 +16,7 @@ class CandidateBase(BaseModel):
     location_pincode: Optional[str] = None
     education_qualification_short: Optional[str] = None
     education_qualification_detailed: Optional[str] = None
-    experience_years: Optional[int] = None
+    experience_years: Optional[str] = None
     experience_details: Optional[str] = None
     notice_period: Optional[int] = None
     current_compensation: Optional[int] = None
@@ -24,9 +24,14 @@ class CandidateBase(BaseModel):
     designation: Optional[str] = None
     resume_url: Optional[str] = None
     cover_letter: Optional[str] = None
-    source: CandidateSource = CandidateSource.MANUAL_ENTRY
+    job_id: Optional[int] = None
+    process: Optional[str] = None
+    source: Optional[CandidateSource] = None
     source_details: Optional[str] = None
+    hr_initial_screening_answers: Optional[str] = None
     status: CandidateStatus = CandidateStatus.NEW
+    reason_of_rejection: Optional[str] = None
+    reason_for_kiv_other_roles: Optional[str] = None
     notes: Optional[str] = None
     is_in_pool: bool = False
 
@@ -45,7 +50,7 @@ class CandidateUpdate(BaseModel):
     location_pincode: Optional[str] = None
     education_qualification_short: Optional[str] = None
     education_qualification_detailed: Optional[str] = None
-    experience_years: Optional[int] = None
+    experience_years: Optional[str] = None
     experience_details: Optional[str] = None
     notice_period: Optional[int] = None
     current_compensation: Optional[int] = None
@@ -53,18 +58,23 @@ class CandidateUpdate(BaseModel):
     designation: Optional[str] = None
     resume_url: Optional[str] = None
     cover_letter: Optional[str] = None
+    job_id: Optional[int] = None
+    process: Optional[str] = None
     source: Optional[CandidateSource] = None
     source_details: Optional[str] = None
+    hr_initial_screening_answers: Optional[str] = None
     status: Optional[CandidateStatus] = None
+    reason_of_rejection: Optional[str] = None
+    reason_for_kiv_other_roles: Optional[str] = None
     notes: Optional[str] = None
     is_in_pool: Optional[bool] = None
 
 class Candidate(CandidateBase):
     id: int
     first_name: str
-    last_name: str
-    email: str
-    experience_years: Optional[int]
+    last_name: Optional[str]
+    email: Optional[str]
+    experience_years: Optional[str]
     phone: Optional[str] = None
     created_by: Optional[int] = None
     created_by_user: Optional[User] = None

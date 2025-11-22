@@ -23,6 +23,33 @@ from sqlalchemy.orm import joinedload
 router = APIRouter()
 
 
+
+class JobMinimal(BaseModel):
+    id: int
+    position_title: str
+
+    class Config:
+        orm_mode = True
+
+
+@router.get("/minimal", response_model=List[JobMinimal])
+def get_jobs_minimal(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+
+    jobs = (
+        db.query(JobModel.id, JobModel.position_title)
+        .order_by(JobModel.position_title.asc())
+        .all()
+    )
+
+    return [
+        {"id": job.id, "position_title": job.position_title}
+        for job in jobs
+    ]
+
+
 def get_pool_candidates_to_job(job: JobModel, db: Session) -> List[CandidateModel]:
     # Fetch all pool candidates
     pool_candidates = db.query(CandidateModel).filter(CandidateModel.is_in_pool == True).all()
