@@ -425,17 +425,14 @@ async def upload_candidates_excel(
         # Normalize column names
         df.columns = df.columns.str.strip().str.lower()
 
-        # Required columns based on DB schema
-        required_columns = [
-            "first_name", "last_name", "email", "phone",
-            "location_state", "location_city", "location_area",
-            "location_pincode", "education_qualification_short"
-        ]
+        # REQUIRED COLUMNS (changed)
+        required_columns = ["first_name", "phone"]
+
         missing_cols = [col for col in required_columns if col not in df.columns]
         if missing_cols:
             raise HTTPException(
                 status_code=400,
-                detail=f"Missing columns: {', '.join(missing_cols)}"
+                detail=f"Missing required columns: {', '.join(missing_cols)}"
             )
 
         # Insert candidates
@@ -443,15 +440,18 @@ async def upload_candidates_excel(
             try:
                 candidate = CandidateModel(
                     first_name=str(row["first_name"]).strip() if pd.notna(row["first_name"]) else None,
-                    last_name=str(row["last_name"]).strip() if pd.notna(row["last_name"]) else None,
-                    email=str(row["email"]).strip() if pd.notna(row["email"]) else None,
+                    last_name=str(row["last_name"]).strip() if "last_name" in df.columns and pd.notna(row.get("last_name")) else None,
+                    email=str(row["email"]).strip() if "email" in df.columns and pd.notna(row.get("email")) else None,
                     phone=str(row["phone"]).strip() if pd.notna(row["phone"]) else None,
-                    location_state=str(row["location_state"]).strip() if pd.notna(row.get("location_state")) else None,
-                    location_city=str(row["location_city"]).strip() if pd.notna(row.get("location_city")) else None,
-                    location_area=str(row["location_area"]).strip() if pd.notna(row.get("location_area")) else None,
-                    location_pincode=str(row["location_pincode"]).strip() if pd.notna(row.get("location_pincode")) else None,
-                    education_qualification_short=str(row["education_qualification_short"]).strip()
+
+                    # Optional fields
+                    location_state=str(row.get("location_state", None)).strip() if pd.notna(row.get("location_state")) else None,
+                    location_city=str(row.get("location_city", None)).strip() if pd.notna(row.get("location_city")) else None,
+                    location_area=str(row.get("location_area", None)).strip() if pd.notna(row.get("location_area")) else None,
+                    location_pincode=str(row.get("location_pincode", None)).strip() if pd.notna(row.get("location_pincode")) else None,
+                    education_qualification_short=str(row.get("education_qualification_short", None)).strip()
                         if pd.notna(row.get("education_qualification_short")) else None,
+
                     created_by=current_user.id,
                 )
                 db.add(candidate)
