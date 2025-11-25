@@ -127,7 +127,10 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
 
   const handleSubmit = async (e) => {
       e.preventDefault()
+
+      if (loading) return;
       setLoading(true)
+
       setError('')
 
       // Required fields
@@ -157,12 +160,6 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
           notice_period: parseInt(formData.notice_period) || 0,
           current_compensation: parseInt(formData.current_compensation) || 0,
           expected_compensation: parseInt(formData.expected_compensation) || 0,
-        }
-
-        if (editCandidate) {
-          await candidatesAPI.update(editCandidate.id, cleanedData)
-        } else {
-          await candidatesAPI.create(cleanedData)
         }
 
         let savedCandidate;
@@ -212,7 +209,7 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
           <h2 className="text-xl font-semibold text-gray-900">
             {editCandidate ? 'Edit Candidate' : 'Add New Candidate'}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X className="h-6 w-6" />
           </button>
         </div>

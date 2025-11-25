@@ -112,9 +112,17 @@ const Candidates = () => {
   }
 
   const filteredCandidates = candidates.filter(candidate => {
-    const matchesSearch = candidate.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         candidate.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         candidate.email.toLowerCase().includes(searchTerm.toLowerCase())
+    const safe = (v) => (v ?? "").toString().toLowerCase();
+    const q = safe(searchTerm);
+
+    const matchesSearch =
+      safe(candidate.first_name).includes(q) ||
+      safe(candidate.last_name).includes(q) ||
+      safe(candidate.email).includes(q);
+
+//     const matchesSearch = candidate.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+//                          candidate.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+//                          candidate.email.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesStatus = selectedStatus === 'all' || candidate.status === selectedStatus
     const matchesCity = selectedCity === 'all' || candidate.location_city === selectedCity

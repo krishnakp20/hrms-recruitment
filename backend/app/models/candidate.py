@@ -51,7 +51,7 @@ class Candidate(Base):
     location_city = Column(String(255))
     location_area = Column(String(255))
     location_pincode = Column(String(20))
-    education_qualification_short = Column(Enum(EducationShort))
+    education_qualification_short = Column(SAEnum(EducationShort, values_callable=lambda enum: [e.value for e in enum], native_enum=False, validate_strings=True), nullable=True)
     education_qualification_detailed = Column(Text)
     experience_years = Column(String(50))
     experience_details = Column(Text)
