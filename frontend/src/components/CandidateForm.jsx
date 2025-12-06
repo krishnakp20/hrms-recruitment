@@ -77,19 +77,24 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
     job_id: '',
     process: '',
     hr_initial_screening_answers: '',
+    f2f_interview_date: '',
     reason_of_rejection: '',
     reason_for_kiv_other_roles: ''
   })
 
   useEffect(() => {
-    if (editCandidate) {
-      setFormData({
-        ...formData,
-        ...editCandidate,
-        is_in_pool: Boolean(editCandidate.is_in_pool)
-      })
-    }
-  }, [editCandidate])
+      if (editCandidate) {
+        setFormData(prev => ({
+          ...prev,
+          ...editCandidate,
+          f2f_interview_date: editCandidate.f2f_interview_date
+            ? editCandidate.f2f_interview_date.split("T")[0]
+            : '',
+          is_in_pool: Boolean(editCandidate.is_in_pool),
+        }));
+      }
+  }, [editCandidate]);
+
 
   useEffect(() => {
       const fetchJobs = async () => {
@@ -103,6 +108,23 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
 
       fetchJobs();
   }, []);
+
+
+  useEffect(() => {
+      const fetchScreeningQuestions = async () => {
+        if (!formData.job_id) return;
+
+        try {
+          const res = await api.get(`/questions/${formData.job_id}/Initial%20Screening`);
+          setScreeningQuestions(res.data || []);
+        } catch (err) {
+          console.error("Failed to load screening questions:", err);
+          setScreeningQuestions([]);
+        }
+      };
+
+      fetchScreeningQuestions();
+  }, [formData.job_id]);
 
 
   const handleChange = async (e) => {
@@ -160,6 +182,7 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
           notice_period: parseInt(formData.notice_period) || 0,
           current_compensation: parseInt(formData.current_compensation) || 0,
           expected_compensation: parseInt(formData.expected_compensation) || 0,
+          f2f_interview_date: formData.f2f_interview_date || null,
         }
 
         let savedCandidate;
@@ -449,6 +472,22 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
                 <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                 <textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} className="input-field" />
               </div>
+
+              {formData.status === "Shortlisted" && (
+                  <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        F2F Interview Date
+                      </label>
+                      <input
+                        type="date"
+                        name="f2f_interview_date"
+                        value={formData.f2f_interview_date || ''}
+                        onChange={handleChange}
+                        className="input-field"
+                      />
+                  </div>
+              )}
+
           </div>
 
           <div>

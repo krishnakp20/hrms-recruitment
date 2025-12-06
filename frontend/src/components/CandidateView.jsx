@@ -113,6 +113,17 @@ const CandidateView = ({ isOpen, onClose, candidate }) => {
             <p><strong>In Pool:</strong> {candidate.is_in_pool ? "Yes" : "No"}</p>
           </div>
 
+          {/* F2F INTERVIEW DATE */}
+          <div>
+              <h3 className="font-semibold text-gray-600 mb-2">F2F Interview</h3>
+              <p>
+                <strong>Date:</strong>{" "}
+                {candidate.f2f_interview_date
+                  ? new Date(candidate.f2f_interview_date).toLocaleDateString("en-IN")
+                  : "Not Scheduled"}
+              </p>
+          </div>
+
           {/* EXPERIENCE DETAILS */}
           <div className="md:col-span-2">
             <h3 className="font-semibold text-gray-600 mb-2">Experience Details</h3>

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Enum, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, Enum, Boolean, ForeignKey, Date
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import enum
@@ -66,6 +66,7 @@ class Candidate(Base):
     source = Column(SAEnum(CandidateSource, native_enum=False, validate_strings=True), nullable=True)
     source_details = Column(String(255))
     hr_initial_screening_answers = Column(Text)
+    f2f_interview_date = Column(Date, nullable=True)
     status = Column(Enum(CandidateStatus), default=CandidateStatus.NEW)
     reason_of_rejection = Column(Text)
     reason_for_kiv_other_roles = Column(Text)

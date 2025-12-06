@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date
 from app.models.candidate import CandidateStatus, CandidateSource
 from .user import User
 
@@ -29,6 +29,7 @@ class CandidateBase(BaseModel):
     source: Optional[CandidateSource] = None
     source_details: Optional[str] = None
     hr_initial_screening_answers: Optional[str] = None
+    f2f_interview_date: Optional[date] = None
     status: CandidateStatus = CandidateStatus.NEW
     reason_of_rejection: Optional[str] = None
     reason_for_kiv_other_roles: Optional[str] = None
@@ -63,6 +64,7 @@ class CandidateUpdate(BaseModel):
     source: Optional[CandidateSource] = None
     source_details: Optional[str] = None
     hr_initial_screening_answers: Optional[str] = None
+    f2f_interview_date: Optional[date] = None
     status: Optional[CandidateStatus] = None
     reason_of_rejection: Optional[str] = None
     reason_for_kiv_other_roles: Optional[str] = None
@@ -76,6 +78,7 @@ class Candidate(CandidateBase):
     email: Optional[str]
     experience_years: Optional[str]
     phone: Optional[str] = None
+    f2f_interview_date: Optional[date] = None
     created_by: Optional[int] = None
     created_by_user: Optional[User] = None
     created_at: Optional[datetime] = None

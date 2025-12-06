@@ -20,6 +20,9 @@ const Candidates = () => {
   const [selectedGender, setSelectedGender] = useState('all')
   const [selectedEducation, setSelectedEducation] = useState('all')
   const [sortOrder, setSortOrder] = useState('desc');
+
+  const [selectedF2FDate, setSelectedF2FDate] = useState('');
+
   const { user } = useAuth();
   const userRole = user?.role;
 
@@ -143,7 +146,14 @@ const Candidates = () => {
     (candidate.cover_letter &&
       candidate.cover_letter.split(',').map(s => s.trim()).includes(selectedSkill))
 
-    return matchesSearch && matchesStatus && matchesCity && matchesGender && matchesEducation && matchesExperience && matchesSkill
+    const matchesF2FDate =
+      !selectedF2FDate ||
+      (candidate.f2f_interview_date &&
+        new Date(candidate.f2f_interview_date)
+          .toISOString()
+          .split("T")[0] === selectedF2FDate);
+
+    return matchesSearch && matchesStatus && matchesCity && matchesGender && matchesEducation && matchesExperience && matchesSkill && matchesF2FDate;
   })
 
 
@@ -238,6 +248,25 @@ const Candidates = () => {
               ))}
             </select>
           </div>
+
+          <div className="sm:w-48 relative">
+              <input
+                type="date"
+                value={selectedF2FDate}
+                onChange={(e) => setSelectedF2FDate(e.target.value)}
+                className="input-field peer"
+              />
+              <label
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs
+                           peer-focus:top-1 peer-focus:text-[14px] peer-focus:text-blue-600
+                           peer-valid:top-1 peer-valid:text-[14px]
+                           transition-all pointer-events-none bg-white px-1"
+              >
+                F2F Interview Date
+              </label>
+          </div>
+
+          {/*
           <div className="sm:w-48">
               <select
                 value={selectedGender}
@@ -251,6 +280,9 @@ const Candidates = () => {
                 ))}
               </select>
           </div>
+          */}
+
+          {/*
           <div className="sm:w-48">
               <select
                 value={selectedCity}
@@ -264,6 +296,7 @@ const Candidates = () => {
                 ))}
               </select>
           </div>
+          */}
           <div className="sm:w-48">
               <select
                 value={selectedEducation}
@@ -289,19 +322,21 @@ const Candidates = () => {
                 ))}
               </select>
           </div>
-{/*           <div className="sm:w-48"> */}
-{/*               <select */}
-{/*                 value={selectedSkill} */}
-{/*                 onChange={(e) => setSelectedSkill(e.target.value)} */}
-{/*                 className="input-field" */}
-{/*               > */}
-{/*                 {skillOptions.map(skill => ( */}
-{/*                   <option key={skill} value={skill}> */}
-{/*                     {skill === 'all' ? 'All Skills' : skill} */}
-{/*                   </option> */}
-{/*                 ))} */}
-{/*               </select> */}
-{/*           </div> */}
+          {/*
+          <div className="sm:w-48">
+              <select
+                value={selectedSkill}
+                onChange={(e) => setSelectedSkill(e.target.value)}
+                className="input-field"
+              >
+                {skillOptions.map(skill => (
+                  <option key={skill} value={skill}>
+                    {skill === 'all' ? 'All Skills' : skill}
+                  </option>
+                ))}
+              </select>
+          </div>
+          */}
           <div className="sm:w-48">
               <select
                 value={sortOrder}
@@ -322,8 +357,8 @@ const Candidates = () => {
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">S.No.</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone No</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gender</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">City</th>
+{/*             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gender</th> */}
+{/*             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">City</th> */}
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Qualification</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">PQE</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
@@ -348,8 +383,8 @@ const Candidates = () => {
                 {candidate.first_name} {candidate.last_name}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.phone}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.gender}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.location_city}</td>
+{/*               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.gender}</td> */}
+{/*               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.location_city}</td> */}
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.education_qualification_short}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{candidate.experience_years}</td>
               <td className="px-6 py-4 whitespace-nowrap">
