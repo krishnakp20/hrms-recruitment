@@ -120,6 +120,9 @@ export default function InterviewQuestionsPage() {
                 S.No
               </th>
               <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">
+                  Job
+              </th>
+              <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">
                 Round
               </th>
               <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase">
@@ -148,6 +151,9 @@ export default function InterviewQuestionsPage() {
                 <tr key={q.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     {(currentPage - 1) * itemsPerPage + index + 1}
+                  </td>
+                  <td className="px-6 py-4">
+                      {q.job?.position_title || "-"}
                   </td>
                   <td className="px-6 py-4">{q.round?.name || "-"}</td>
                   <td className="px-6 py-4">{q.question_text}</td>

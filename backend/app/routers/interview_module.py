@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
@@ -82,6 +82,13 @@ class InterviewQuestionUpdate(BaseModel):
     weightage: float = None
 
 
+class JobMiniResponse(BaseModel):
+    id: int
+    position_title: str
+
+    class Config:
+        orm_mode = True
+
 class InterviewQuestionResponse(BaseModel):
     id: int
     job_id: int
@@ -90,6 +97,7 @@ class InterviewQuestionResponse(BaseModel):
     max_score: int
     weightage: float
     round: InterviewRoundResponse
+    job: JobMiniResponse
 
     class Config:
         orm_mode = True
@@ -103,7 +111,7 @@ class InterviewQuestionResponse(BaseModel):
 # -----------------------
 
 @router.get("/jobs/", response_model=List[JobResponse])
-def get_interview_jobs(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+def get_interview_jobs(db: Session = Depends(get_db)):
     jobs = db.query(Job).all()
     return jobs
 
@@ -117,7 +125,14 @@ def get_interview_rounds(db: Session = Depends(get_db)):
 # Get all questions
 @router.get("/interview-questions/", response_model=List[InterviewQuestionResponse])
 def get_all_questions(db: Session = Depends(get_db)):
-    questions = db.query(InterviewQuestion).order_by(InterviewQuestion.id.desc()).all()
+    questions = (
+        db.query(InterviewQuestion)
+        .options(
+            joinedload(InterviewQuestion.job),
+        )
+        .order_by(InterviewQuestion.id.desc())
+        .all()
+    )
     return questions
 
 
