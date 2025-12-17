@@ -29,6 +29,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
     required_skills: '',
     experience_level: '',
     job_description: '',
+    job_description_file_url: '',
     number_of_vacancies: 1,
     compensation_min: '',
     compensation_max: '',
@@ -108,6 +109,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
         required_skills: editJob.required_skills || '',
         experience_level: editJob.experience_level || '',
         job_description: editJob.job_description || '',
+        job_description_file_url: editJob.job_description_file_url || '',
         number_of_vacancies: editJob.number_of_vacancies || 1,
         compensation_min: editJob.compensation_min || '',
         compensation_max: editJob.compensation_max || '',
@@ -161,6 +163,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
     setFormData(prev => ({
       ...prev,
       ...jobData,
+      job_description_file_url: jobData.job_description_file_url || '',
       status: 'Draft',
       hiring_deadline: jobData.hiring_deadline ? jobData.hiring_deadline.split('T')[0] : ''
     }))
@@ -181,7 +184,16 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
       return duplicate;
     };
 
+  const uploadJDFile = async (file) => {
+      const formData = new FormData()
+      formData.append("file", file)
 
+      const res = await api.post("/jobs/job-description", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+
+      return res.data.file_url
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -206,6 +218,13 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
     setLoading(true)
 
     try {
+
+      let jdFileUrl = formData.job_description_file_url
+
+      if (formData.job_description_file) {
+        jdFileUrl = await uploadJDFile(formData.job_description_file)
+      }
+
       // Clean up the form data before sending
       const cleanedData = {
         ...formData,
@@ -221,6 +240,7 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
         required_skills: formData.required_skills || null,
         experience_level: formData.experience_level || null,
         job_description: formData.job_description || null,
+        job_description_file_url: jdFileUrl || null,
         number_of_vacancies: parseInt(formData.number_of_vacancies) || 1,
         compensation_min: formData.compensation_min ? parseInt(formData.compensation_min) : null,
         compensation_max: formData.compensation_max ? parseInt(formData.compensation_max) : null,
@@ -609,11 +629,14 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
                 Required Skills
               </label>
               <textarea
+                spellCheck
+                autoCorrect="on"
+                autoCapitalize="sentences"
+                className="input-field"
                 name="required_skills"
                 value={formData.required_skills}
                 onChange={handleChange}
                 rows="3"
-                className="input-field"
                 placeholder="e.g., Python, React, AWS"
               />
             </div>
@@ -639,14 +662,57 @@ const JobForm = ({ isOpen, onClose, onSuccess, editJob = null }) => {
               Job Description
             </label>
             <textarea
+              spellCheck
+              autoCorrect="on"
+              autoCapitalize="sentences"
+              className="input-field"
               name="job_description"
               value={formData.job_description}
               onChange={handleChange}
               rows="4"
-              className="input-field"
               placeholder="Detailed job description..."
             />
           </div>
+
+          {/* Job Description File Upload */}
+          <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Job Description File (PDF / DOCX)
+              </label>
+
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    job_description_file: e.target.files[0], // temp file
+                  })
+                }
+                className="block w-full text-sm text-gray-700
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-indigo-50 file:text-indigo-700
+                  hover:file:bg-indigo-100"
+              />
+
+              {/* Existing file preview */}
+              {formData.job_description_file_url && (
+                <p className="mt-2 text-sm">
+                  Existing file:&nbsp;
+                  <a
+                    href={formData.job_description_file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-indigo-600 underline"
+                  >
+                    View Job Description File
+                  </a>
+                </p>
+              )}
+          </div>
+
 
           {/* Reporting Structure */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

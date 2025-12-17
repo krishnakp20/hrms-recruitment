@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List
 from app.core.database import get_db
@@ -18,6 +18,34 @@ async def get_applications(skip: int = 0, db: Session = Depends(get_db)):
         .all()
     )
     return applications
+
+
+@router.get(
+    "/by-candidate-job",
+    response_model=Application
+)
+async def get_application_by_candidate_job(
+    candidate_id: int = Query(...),
+    job_id: int = Query(...),
+    db: Session = Depends(get_db)
+):
+    application = (
+        db.query(ApplicationModel)
+        .filter(
+            ApplicationModel.candidate_id == candidate_id,
+            ApplicationModel.job_id == job_id
+        )
+        .first()
+    )
+
+    if not application:
+        raise HTTPException(
+            status_code=404,
+            detail="Application not found for this candidate and job"
+        )
+
+    return application
+
 
 @router.get("/{application_id}", response_model=Application)
 async def get_application(application_id: int, db: Session = Depends(get_db)):

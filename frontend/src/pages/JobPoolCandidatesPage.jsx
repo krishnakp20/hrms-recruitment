@@ -12,6 +12,8 @@ const JobPoolCandidatesPage = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
+  const [updatedDate, setUpdatedDate] = useState('')
+
   const fetchPoolCandidates = async () => {
     setLoading(true)
     try {
@@ -29,10 +31,22 @@ const JobPoolCandidatesPage = () => {
     if (jobId) fetchPoolCandidates()
   }, [jobId])
 
-  const filteredCandidates = candidates.filter(c =>
-    `${c.first_name} ${c.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredCandidates = candidates.filter(c => {
+      // 🔍 Search filter
+      const matchesSearch =
+        `${c.first_name} ${c.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.email?.toLowerCase().includes(searchTerm.toLowerCase())
+
+      // 📅 Updated date filter (single date)
+      if (!updatedDate) return matchesSearch
+
+      if (!c.updated_at) return false
+
+      const candidateDate = new Date(c.updated_at).toISOString().split('T')[0]
+
+      return matchesSearch && candidateDate === updatedDate
+  })
+
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -65,6 +79,11 @@ const JobPoolCandidatesPage = () => {
       currentPage * itemsPerPage
     )
 
+    useEffect(() => {
+      setCurrentPage(1)
+    }, [updatedDate, searchTerm])
+
+
 
   return (
     <div className="space-y-6 p-6">
@@ -81,17 +100,44 @@ const JobPoolCandidatesPage = () => {
 
       {/* Search */}
       <div className="card">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by name or email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="input-field pl-10"
-          />
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="input-field pl-10"
+              />
+            </div>
+
+            {/* Updated Date */}
+            <div className="relative">
+              <input
+                type="date"
+                value={updatedDate}
+                onChange={(e) => setUpdatedDate(e.target.value)}
+                className="input-field peer"
+              />
+              <label
+                className="
+                  absolute left-3 top-2 text-gray-500 text-sm
+                  transition-all
+                  peer-focus:-top-2 peer-focus:text-xs peer-focus:text-blue-600
+                  peer-valid:-top-2 peer-valid:text-xs
+                  bg-white px-1
+                "
+              >
+                Updated Date
+              </label>
+            </div>
+
+
+          </div>
       </div>
+
 
       {/* Table */}
       <div className="card relative bg-white shadow-md rounded-xl overflow-x-auto overflow-y-auto max-h-[500px]">

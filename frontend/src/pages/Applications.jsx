@@ -66,18 +66,18 @@ const Applications = () => {
       // You can either auto-select the first round or ask the user to pick
       const roundId = rounds[0].id; // For now, take the first round
 
-      const interviewerId = user?.id; // From AuthContext
+//       const interviewerId = user?.id; // From AuthContext
 
-      if (!interviewerId) {
-        alert("Unable to identify interviewer. Please log in again.");
-        return;
-      }
+//       if (!interviewerId) {
+//         alert("Unable to identify interviewer. Please log in again.");
+//         return;
+//       }
 
       // Start or fetch the interview session
       const res = await api.post("/interview-sessions/start", {
         application_id: application.id,
         round_id: roundId,
-        interviewer_id: interviewerId,
+//         interviewer_id: interviewerId,
       });
 
       // Navigate to the interview page for this session
@@ -251,7 +251,7 @@ const Applications = () => {
                               const res = await api.post("/interview-sessions/start", {
                                 application_id: application.id,
                                 round_id: roundId,
-                                interviewer_id: user.id,
+//                                 interviewer_id: user.id,
                               });
                               navigate(`/interviews/session/${res.data.id}`);
                             } catch (err) {

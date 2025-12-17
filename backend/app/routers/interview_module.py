@@ -10,7 +10,7 @@ from app.models.candidate import Candidate
 from sqlalchemy import func
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.models.user import UserRole
+from app.models.user import UserRole, User
 
 router = APIRouter()
 # -----------------------
@@ -124,13 +124,22 @@ def get_interview_rounds(db: Session = Depends(get_db)):
 
 # Get all questions
 @router.get("/interview-questions/", response_model=List[InterviewQuestionResponse])
-def get_all_questions(db: Session = Depends(get_db)):
-    questions = (
+def get_all_questions(db: Session = Depends(get_db), current_user: User = Depends(get_current_user),):
+    query = (
         db.query(InterviewQuestion)
+        .join(Job, InterviewQuestion.job_id == Job.id)
         .options(
             joinedload(InterviewQuestion.job),
         )
-        .order_by(InterviewQuestion.id.desc())
+    )
+
+    # 🔐 Non-admin users → only their jobs
+    if current_user.role != "ADMIN":
+        query = query.filter(Job.created_by == current_user.id)
+
+    questions = (
+        query
+        .order_by(InterviewQuestion.id.asc())
         .all()
     )
     return questions
@@ -273,21 +282,28 @@ class ConductInterviewRequest(BaseModel):
 class StartInterviewSessionRequest(BaseModel):
     application_id: int
     round_id: int
-    interviewer_id: int
 
 
 @router.post("/interview-sessions/start", response_model=InterviewSessionOut)
-def start_interview_session(payload: StartInterviewSessionRequest, db: Session = Depends(get_db)):
-    # Check if session already exists
+def start_interview_session(
+    payload: StartInterviewSessionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    application = db.query(Application).filter_by(id=payload.application_id).first()
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+
     existing = db.query(InterviewSession).filter(
         InterviewSession.application_id == payload.application_id,
         InterviewSession.round_id == payload.round_id
     ).first()
 
     if existing:
-        # Attach job_id and fetch responses
-        application = db.query(Application).filter_by(id=existing.application_id).first()
-        session_responses = db.query(InterviewResponse).filter_by(session_id=existing.id).all()
+        responses = db.query(InterviewResponse).filter_by(
+            session_id=existing.id
+        ).all()
+
         return InterviewSessionOut(
             id=existing.id,
             application_id=existing.application_id,
@@ -299,21 +315,58 @@ def start_interview_session(payload: StartInterviewSessionRequest, db: Session =
             overall_score=existing.overall_score,
             status=existing.status,
             job_id=application.job_id,
-            responses=[InterviewResponseOut.from_orm(r) for r in session_responses]
+            responses=[InterviewResponseOut.from_orm(r) for r in responses]
         )
 
-    # Create new session
     session = InterviewSession(
         application_id=payload.application_id,
         round_id=payload.round_id,
-        interviewer_id=payload.interviewer_id,
+        interviewer_id=current_user.id,
         status="SCHEDULED"
     )
+
     db.add(session)
     db.commit()
     db.refresh(session)
 
-    # Fetch application to attach job_id
+    return InterviewSessionOut(
+        id=session.id,
+        application_id=session.application_id,
+        round_id=session.round_id,
+        interviewer_id=session.interviewer_id,
+        scheduled_at=session.scheduled_at,
+        conducted_at=session.conducted_at,
+        overall_feedback=session.overall_feedback,
+        overall_score=session.overall_score,
+        status=session.status,
+        job_id=application.job_id,
+        responses=[]
+    )
+
+
+
+@router.get(
+    "/interview-sessions/by-application-round",
+    response_model=InterviewSessionOut
+)
+def get_session_by_application_round(
+    application_id: int,
+    round_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    session = db.query(InterviewSession).filter(
+        InterviewSession.application_id == application_id,
+        InterviewSession.round_id == round_id
+    ).first()
+
+    if not session:
+        raise HTTPException(status_code=404, detail="Interview session not found")
+
+    responses = db.query(InterviewResponse).filter(
+        InterviewResponse.session_id == session.id
+    ).all()
+
     application = db.query(Application).filter_by(id=session.application_id).first()
 
     return InterviewSessionOut(
@@ -327,7 +380,7 @@ def start_interview_session(payload: StartInterviewSessionRequest, db: Session =
         overall_score=session.overall_score,
         status=session.status,
         job_id=application.job_id,
-        responses=[]  # no responses yet
+        responses=[InterviewResponseOut.from_orm(r) for r in responses]
     )
 
 

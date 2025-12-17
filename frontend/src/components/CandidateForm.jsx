@@ -44,56 +44,87 @@ const INDIAN_STATES = [
 ];
 
 
+
+const INITIAL_FORM_DATA = {
+  first_name: '',
+  last_name: '',
+  email: '',
+  phone: '',
+  gender: '',
+  location_state: '',
+  location_city: '',
+  location_area: '',
+  location_pincode: '',
+  education_qualification_short: '',
+  education_qualification_detailed: '',
+  experience_years: '',
+  experience_details: '',
+  notice_period: '',
+  current_compensation: '',
+  expected_compensation: '',
+  designation: '',
+  resume_url: '',
+  cover_letter: '',
+  source: 'Job Portal',
+  source_details: '',
+  status: 'New',
+  notes: '',
+  is_in_pool: false,
+  job_id: '',
+  process: '',
+  hr_initial_screening_answers: '',
+  f2f_interview_date: '',
+  reason_of_rejection: '',
+  reason_for_kiv_other_roles: ''
+};
+
+
+
 const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [jobList, setJobList] = useState([]);
+//   const [screeningQuestions, setScreeningQuestions] = useState([]);
+  const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+
+  const [applicationId, setApplicationId] = useState(null);
+
   const [screeningQuestions, setScreeningQuestions] = useState([]);
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
-    gender: '',
-    location_state: '',
-    location_city: '',
-    location_area: '',
-    location_pincode: '',
-    education_qualification_short: '',
-    education_qualification_detailed: '',
-    experience_years: '',
-    experience_details: '',
-    notice_period: '',
-    current_compensation: '',
-    expected_compensation: '',
-    designation: '',
-    resume_url: '',
-    cover_letter: '',
-    source: 'Job Portal',
-    source_details: '',
-    status: 'New',
-    notes: '',
-    is_in_pool: false,
-    job_id: '',
-    process: '',
-    hr_initial_screening_answers: '',
-    f2f_interview_date: '',
-    reason_of_rejection: '',
-    reason_for_kiv_other_roles: ''
-  })
+  const [screeningAnswers, setScreeningAnswers] = useState({});
+  const [screeningRoundId, setScreeningRoundId] = useState(null);
+
+
+
+  const getInitialScreeningRoundId = async () => {
+      const res = await api.get("/interview_round_templates/");
+      const round = res.data.find(r => r.name === "Initial Screening");
+      return round?.id;
+  };
+
 
   useEffect(() => {
+      if (!isOpen) return;
+
       if (editCandidate) {
-        setFormData(prev => ({
-          ...prev,
+        // EDIT MODE
+        setFormData({
+          ...INITIAL_FORM_DATA,
           ...editCandidate,
           f2f_interview_date: editCandidate.f2f_interview_date
             ? editCandidate.f2f_interview_date.split("T")[0]
             : '',
           is_in_pool: Boolean(editCandidate.is_in_pool),
-        }));
+        });
+      } else {
+        // ADD MODE → always reset
+        setFormData(INITIAL_FORM_DATA);
+        setScreeningQuestions([]);
+        setScreeningAnswers({});
+        setScreeningRoundId(null);
+        setApplicationId(null);
+        setError('');
       }
-  }, [editCandidate]);
+  }, [isOpen, editCandidate]);
 
 
   useEffect(() => {
@@ -110,6 +141,92 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
   }, []);
 
 
+
+  useEffect(() => {
+      const loadInitialScreening = async () => {
+        if (!formData.job_id) return;
+
+        try {
+          const roundId = await getInitialScreeningRoundId();
+          setScreeningRoundId(roundId);
+
+          const res = await api.get(
+            `/interview-questions/job/${formData.job_id}/round/${roundId}`
+          );
+
+          setScreeningQuestions(res.data || []);
+        } catch (err) {
+          console.error("Failed to load screening questions", err);
+          setScreeningQuestions([]);
+        }
+      };
+
+      loadInitialScreening();
+  }, [formData.job_id]);
+
+
+
+  useEffect(() => {
+      const fetchApplicationId = async () => {
+        if (!editCandidate || !editCandidate.id || !formData.job_id) return;
+
+        try {
+          const res = await api.get(
+            `/applications/by-candidate-job`,
+            {
+              params: {
+                candidate_id: editCandidate.id,
+                job_id: formData.job_id
+              }
+            }
+          );
+
+          setApplicationId(res.data.id);
+        } catch (err) {
+          console.log("Application not found yet");
+        }
+      };
+
+      fetchApplicationId();
+  }, [editCandidate, formData.job_id]);
+
+
+
+
+  useEffect(() => {
+      const loadSavedScreeningAnswers = async () => {
+        if (!editCandidate || !applicationId || !screeningRoundId) return;
+
+        try {
+          const res = await api.get(
+            `/interview-sessions/by-application-round`,
+            {
+              params: {
+                application_id: applicationId,
+                round_id: screeningRoundId
+              }
+            }
+          );
+
+          const answersMap = {};
+          res.data.responses.forEach(r => {
+            answersMap[r.question_id] = r.feedback;
+          });
+
+          setScreeningAnswers(answersMap);
+        } catch (err) {
+          console.log("No screening session yet");
+        }
+      };
+
+      loadSavedScreeningAnswers();
+  }, [editCandidate, applicationId, screeningRoundId]);
+
+
+
+
+
+  {/*
   useEffect(() => {
       const fetchScreeningQuestions = async () => {
         if (!formData.job_id) return;
@@ -125,6 +242,7 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
 
       fetchScreeningQuestions();
   }, [formData.job_id]);
+  */}
 
 
   const handleChange = async (e) => {
@@ -135,6 +253,7 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
         [name]: type === 'checkbox' ? checked : value
       }));
 
+      {/*
       if (name === "job_id" && value) {
         try {
           const res = await api.get(`/questions/${value}/Initial%20Screening`);
@@ -144,6 +263,7 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
           setScreeningQuestions([]);
         }
       }
+      */}
   };
 
 
@@ -195,22 +315,77 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
 
         const candidateId = editCandidate ? editCandidate.id : savedCandidate.data.id;
 
-        // Auto-create application
-        if (
-          cleanedData.status === "Shortlisted" &&
-          cleanedData.is_in_pool &&
-          cleanedData.job_id
-        ) {
+        let appId = null;
+
+        if (cleanedData.job_id) {
           try {
-            await api.post("/applications/", {
+            const res = await api.post("/applications/", {
               candidate_id: candidateId,
               job_id: cleanedData.job_id,
               status: "Applied",
             });
+
+            appId = res.data.id;
+            setApplicationId(appId);
+
           } catch (err) {
-            console.error("Application creation failed:", err);
+            // If application already exists, backend should return 409 or 400
+            // Fetch existing application
+            try {
+              const existing = await api.get(
+                `/applications/by-candidate-job?candidate_id=${candidateId}&job_id=${cleanedData.job_id}`
+              );
+              appId = existing.data.id;
+              setApplicationId(appId);
+            } catch (fetchErr) {
+              console.error("Failed to fetch existing application", fetchErr);
+            }
           }
         }
+
+
+        // Auto-create application
+//         if (
+//           cleanedData.status === "Shortlisted" &&
+//           cleanedData.is_in_pool &&
+//           cleanedData.job_id
+//         ) {
+//           try {
+//             await api.post("/applications/", {
+//               candidate_id: candidateId,
+//               job_id: cleanedData.job_id,
+//               status: "Applied",
+//             });
+//           } catch (err) {
+//             console.error("Application creation failed:", err);
+//           }
+//         }
+
+
+        // ----------------- INITIAL SCREENING -----------------
+        if (screeningQuestions.length > 0 && screeningRoundId) {
+
+          // 1️⃣ Start session
+          const sessionRes = await api.post("/interview-sessions/start", {
+            application_id: appId,
+            round_id: screeningRoundId
+          });
+
+          const sessionId = sessionRes.data.id;
+
+          // 2️⃣ Store answers
+          await api.post("/interview-sessions/conduct", {
+            session_id: sessionId,
+            responses: Object.entries(screeningAnswers).map(
+              ([question_id, answer]) => ({
+                question_id: Number(question_id),
+                feedback: answer,   // 👈 using feedback as answer
+                score: null,
+              })
+            ),
+          });
+        }
+
 
         onSuccess()
         onClose()
@@ -221,6 +396,14 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
         setLoading(false)
       }
   }
+
+  const handleClose = () => {
+      setFormData(INITIAL_FORM_DATA);
+//       setScreeningQuestions([]);
+      setError('');
+      onClose();
+  };
+
 
 
   if (!isOpen) return null
@@ -363,7 +546,16 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
 
               <div>
                 <label htmlFor="education_qualification_detailed" className="block text-sm font-medium text-gray-700 mb-1">Education Qualification (Detailed)</label>
-                <textarea id="education_qualification_detailed" name="education_qualification_detailed" value={formData.education_qualification_detailed} onChange={handleChange} className="input-field" />
+                <textarea
+                  spellCheck
+                  autoCorrect="on"
+                  autoCapitalize="sentences"
+                  className="input-field"
+                  id="education_qualification_detailed"
+                  name="education_qualification_detailed"
+                  value={formData.education_qualification_detailed}
+                  onChange={handleChange}
+                />
               </div>
           </div>
 
@@ -374,7 +566,12 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
             </div>
             <div>
                 <label htmlFor="experience_details" className="block text-sm font-medium text-gray-700 mb-1">Experience Details</label>
-                <textarea id="experience_details" name="experience_details" value={formData.experience_details} onChange={handleChange} className="input-field" />
+                <textarea id="experience_details" name="experience_details" value={formData.experience_details} onChange={handleChange}
+                  spellCheck
+                  autoCorrect="on"
+                  autoCapitalize="sentences"
+                  className="input-field"
+                />
             </div>
 
             <div>
@@ -397,7 +594,12 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
 
           <div>
             <label htmlFor="cover_letter" className="block text-sm font-medium text-gray-700 mb-1">Key Skills</label>
-            <textarea id="cover_letter" name="cover_letter" value={formData.cover_letter} onChange={handleChange} className="input-field" />
+            <textarea id="cover_letter" name="cover_letter" value={formData.cover_letter} onChange={handleChange}
+              spellCheck
+              autoCorrect="on"
+              autoCapitalize="sentences"
+              className="input-field"
+            />
           </div>
 
 
@@ -425,7 +627,36 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
               </div>
           </div>
 
+
+          {screeningQuestions.length > 0 && (
+              <div className="bg-gray-50 p-4 rounded border">
+                <h3 className="font-semibold mb-3">Initial Screening</h3>
+
+                {screeningQuestions.map((q) => (
+                  <div key={q.id} className="mb-4">
+                    <label className="block text-sm font-medium mb-1">
+                      {q.question_text}
+                    </label>
+                    <textarea
+                      className="input-field w-full"
+                      value={screeningAnswers[q.id] || ""}
+                      onChange={(e) =>
+                        setScreeningAnswers(prev => ({
+                          ...prev,
+                          [q.id]: e.target.value
+                        }))
+                      }
+                      placeholder="Enter answer..."
+                    />
+                  </div>
+                ))}
+              </div>
+          )}
+
+
+
           {/* Show screening questions if available */}
+          {/*
           {screeningQuestions.length > 0 && (
               <div className="bg-gray-50 p-4 rounded border mb-4">
                 <h3 className="text-sm font-semibold mb-2">Initial Screening Questions</h3>
@@ -436,12 +667,17 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
                 </ul>
               </div>
           )}
+          */}
 
+          {/*
           <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 HR Initial Screening Answers
               </label>
               <textarea
+                spellCheck
+                autoCorrect="on"
+                autoCapitalize="sentences"
                 id="hr_initial_screening_answers"
                 name="hr_initial_screening_answers"
                 value={formData.hr_initial_screening_answers}
@@ -450,6 +686,7 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
                 placeholder="Write answers here..."
               />
           </div>
+          */}
 
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -470,7 +707,12 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
 
               <div>
                 <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                <textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} className="input-field" />
+                <textarea id="notes" name="notes" value={formData.notes} onChange={handleChange}
+                  spellCheck
+                  autoCorrect="on"
+                  autoCapitalize="sentences"
+                  className="input-field"
+                />
               </div>
 
               {formData.status === "Shortlisted" && (
@@ -493,22 +735,28 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
           <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Reason of Rejection</label>
               <textarea
+                spellCheck
+                autoCorrect="on"
+                autoCapitalize="sentences"
+                className="input-field"
                 id="reason_of_rejection"
                 name="reason_of_rejection"
                 value={formData.reason_of_rejection}
                 onChange={handleChange}
-                className="input-field"
               />
           </div>
 
           <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Reason for KIV Other Roles</label>
               <textarea
+                spellCheck
+                autoCorrect="on"
+                autoCapitalize="sentences"
+                className="input-field"
                 id="reason_for_kiv_other_roles"
                 name="reason_for_kiv_other_roles"
                 value={formData.reason_for_kiv_other_roles}
                 onChange={handleChange}
-                className="input-field"
               />
           </div>
 
@@ -525,9 +773,10 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
           </label>
 
           <div className="flex items-center justify-end space-x-3 pt-6 border-t">
-            <button type="button" onClick={onClose} className="btn-secondary" disabled={loading}>
+            <button type="button" onClick={handleClose} className="btn-secondary">
               Cancel
             </button>
+
             <button type="submit" disabled={loading} className="btn-primary flex items-center">
               {loading ? (
                 <>

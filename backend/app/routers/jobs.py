@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Request
+from uuid import uuid4
+import os
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
@@ -152,6 +154,47 @@ async def get_job(
         raise HTTPException(status_code=403, detail="Access denied")
     
     return job
+
+
+UPLOAD_DIR = "uploads/job_descriptions"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+@router.post("/job-description")
+async def upload_job_description_file(
+    request: Request,
+    file: UploadFile = File(...),
+    current_user = Depends(get_current_user),
+):
+    # Role check
+    if current_user.role not in [
+        UserRole.ADMIN,
+        UserRole.HR_SPOC,
+        UserRole.EMPLOYER,
+        UserRole.RECRUITER,
+        UserRole.MANAGER,
+    ]:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    allowed_types = [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ]
+
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Invalid file type")
+
+    ext = os.path.splitext(file.filename)[1]
+    filename = f"{uuid4()}{ext}"
+    file_path = os.path.join(UPLOAD_DIR, filename)
+
+    with open(file_path, "wb") as f:
+        f.write(await file.read())
+
+    file_url = f"{request.base_url}uploads/job_descriptions/{filename}"
+
+    return {"file_url": file_url}
+
 
 @router.post("/", response_model=Job)
 async def create_job(

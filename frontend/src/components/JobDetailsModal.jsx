@@ -1,4 +1,4 @@
-import { Briefcase, Building2, Calendar, DollarSign, MapPin, User } from 'lucide-react'
+import { Briefcase, FileText, Building2, Calendar, DollarSign, MapPin, User } from 'lucide-react'
 
 const JobDetailsModal = ({ isOpen, onClose, job }) => {
   if (!isOpen || !job) return null
@@ -48,6 +48,25 @@ const JobDetailsModal = ({ isOpen, onClose, job }) => {
           <h3 className="text-lg font-semibold border-b pb-1 mb-2">Description</h3>
           <p className="text-gray-700 whitespace-pre-wrap">{job.job_description || 'N/A'}</p>
         </div>
+
+        {job.job_description_file_url && (
+          <div className="pt-4">
+            <h3 className="text-lg font-semibold border-b pb-1 mb-2 flex items-center gap-2">
+              <FileText className="h-5 w-5 text-indigo-600" />
+              Job Description File
+            </h3>
+
+            <a
+              href={job.job_description_file_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 underline"
+            >
+              View / Download Job Description
+            </a>
+          </div>
+        )}
+
       </div>
     </div>
   )

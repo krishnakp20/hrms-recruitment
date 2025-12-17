@@ -23,6 +23,8 @@ const Candidates = () => {
 
   const [selectedF2FDate, setSelectedF2FDate] = useState('');
 
+  const [selectedUpdatedDate, setSelectedUpdatedDate] = useState('');
+
   const { user } = useAuth();
   const userRole = user?.role;
 
@@ -153,7 +155,16 @@ const Candidates = () => {
           .toISOString()
           .split("T")[0] === selectedF2FDate);
 
-    return matchesSearch && matchesStatus && matchesCity && matchesGender && matchesEducation && matchesExperience && matchesSkill && matchesF2FDate;
+
+    const matchesUpdatedDate =
+      !selectedUpdatedDate ||
+      (candidate.updated_at &&
+        new Date(candidate.updated_at)
+          .toISOString()
+          .split("T")[0] === selectedUpdatedDate);
+
+
+    return matchesSearch && matchesStatus && matchesCity && matchesGender && matchesEducation && matchesExperience && matchesSkill && matchesF2FDate && matchesUpdatedDate;
   })
 
 
@@ -337,6 +348,8 @@ const Candidates = () => {
               </select>
           </div>
           */}
+
+          {/*
           <div className="sm:w-48">
               <select
                 value={sortOrder}
@@ -347,6 +360,25 @@ const Candidates = () => {
                 <option value="asc">Date: Oldest First</option>
               </select>
           </div>
+          */}
+
+          <div className="sm:w-48 relative">
+              <input
+                type="date"
+                value={selectedUpdatedDate}
+                onChange={(e) => setSelectedUpdatedDate(e.target.value)}
+                className="input-field peer"
+              />
+              <label
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs
+                           peer-focus:top-1 peer-focus:text-[14px] peer-focus:text-blue-600
+                           peer-valid:top-1 peer-valid:text-[14px]
+                           transition-all pointer-events-none bg-white px-1"
+              >
+                Updated Date
+              </label>
+          </div>
+
         </div>
       </div>
 

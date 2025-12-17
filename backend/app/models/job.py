@@ -53,6 +53,7 @@ class Job(Base):
     required_skills = Column(Text)
     experience_level = Column(String(255))
     job_description = Column(Text)
+    job_description_file_url = Column(String(500), nullable=True)
     job_specification = Column(Text)
     number_of_vacancies = Column(Integer, default=1)
     compensation_min = Column(Integer)

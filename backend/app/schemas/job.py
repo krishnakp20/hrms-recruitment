@@ -41,6 +41,7 @@ class JobBase(BaseModel):
     required_skills: Optional[str] = None
     experience_level: Optional[str] = None
     job_description: Optional[str] = None
+    job_description_file_url: Optional[str] = None
     number_of_vacancies: int = 1
     compensation_min: Optional[int] = None
     compensation_max: Optional[int] = None
@@ -73,6 +74,7 @@ class JobUpdate(BaseModel):
     required_skills: Optional[str] = None
     experience_level: Optional[str] = None
     job_description: Optional[str] = None
+    job_description_file_url: Optional[str] = None
     number_of_vacancies: Optional[int] = None
     compensation_min: Optional[int] = None
     compensation_max: Optional[int] = None
@@ -90,6 +92,7 @@ class Job(JobBase):
     position_title: str
     position_code: str
     pool_candidate_count: int = 0
+    job_description_file_url: Optional[str] = None
     department: Optional[Department] = None
     employment_type: Optional[str] = None
     created_by_user: Optional[User] = None
