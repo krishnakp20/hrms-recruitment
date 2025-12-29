@@ -315,9 +315,10 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
 
         const candidateId = editCandidate ? editCandidate.id : savedCandidate.data.id;
 
-        let appId = null;
+        let appId = applicationId;
 
-        if (cleanedData.job_id) {
+        // Create application ONLY in ADD mode
+        if (!editCandidate && cleanedData.job_id) {
           try {
             const res = await api.post("/applications/", {
               candidate_id: candidateId,
@@ -327,21 +328,40 @@ const CandidateForm = ({ isOpen, onClose, onSuccess, editCandidate = null }) => 
 
             appId = res.data.id;
             setApplicationId(appId);
-
           } catch (err) {
-            // If application already exists, backend should return 409 or 400
-            // Fetch existing application
-            try {
-              const existing = await api.get(
-                `/applications/by-candidate-job?candidate_id=${candidateId}&job_id=${cleanedData.job_id}`
-              );
-              appId = existing.data.id;
-              setApplicationId(appId);
-            } catch (fetchErr) {
-              console.error("Failed to fetch existing application", fetchErr);
-            }
+            console.error("Application creation failed", err);
           }
         }
+
+
+
+//         let appId = null;
+//
+//         if (cleanedData.job_id) {
+//           try {
+//             const res = await api.post("/applications/", {
+//               candidate_id: candidateId,
+//               job_id: cleanedData.job_id,
+//               status: "Applied",
+//             });
+//
+//             appId = res.data.id;
+//             setApplicationId(appId);
+//
+//           } catch (err) {
+//             // If application already exists, backend should return 409 or 400
+//             // Fetch existing application
+//             try {
+//               const existing = await api.get(
+//                 `/applications/by-candidate-job?candidate_id=${candidateId}&job_id=${cleanedData.job_id}`
+//               );
+//               appId = existing.data.id;
+//               setApplicationId(appId);
+//             } catch (fetchErr) {
+//               console.error("Failed to fetch existing application", fetchErr);
+//             }
+//           }
+//         }
 
 
         // Auto-create application
